@@ -401,14 +401,6 @@ export default SummaryPage;
 
 
 
-
-
-
-
-
-
-
-
 // with transcript 
 // import React from "react";
 // import "./SummaryPage.css";
