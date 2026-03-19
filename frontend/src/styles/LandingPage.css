@@ -43,12 +43,12 @@ body{
 
 /* HERO */
 
-.hero{
+.meethero{
   padding:100px 80px;
   background:linear-gradient(135deg,#f5f3ff,#ede9fe);
 }
 
-.hero-content{
+.meethero-content{
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -56,27 +56,27 @@ body{
   margin:auto;
 }
 
-.hero-text{
+.meethero-text{
   max-width:520px;
   animation:fadeUp 1s ease;
 }
 
-.hero h1{
+.meethero h1{
   font-size:48px;
   color:#3b2f80;
 }
 
-.hero span{
+.meethero span{
   color:#7c3aed;
 }
 
-.hero p{
+.meethero p{
   margin-top:20px;
   font-size:18px;
   color:#555;
 }
 
-.hero-btn{
+.meethero-btn{
   margin-top:25px;
   padding:14px 28px;
   border:none;

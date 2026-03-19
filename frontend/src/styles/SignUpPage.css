@@ -1,27 +1,54 @@
 .signup-container {
+  display: flex;
   height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+
+/* LEFT PANEL */
+
+.signup-left {
+  flex: 1;
+  background: linear-gradient(135deg, #ede9fe, #c4b5fd);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px;
+  color: #3b2f80;
+  position: relative;   /* ✅ ADD THIS */
+  overflow: hidden;
+}
+
+.signup-left h1 {
+  font-size: 42px;
+}
+
+.signup-left p {
+  margin-top: 15px;
+  font-size: 18px;
+}
+
+
+/* RIGHT PANEL */
+
+.signup-right {
+  width: 500px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg,#f5f3ff,#e9d5ff);
 }
+
+
+/* CARD */
 
 .signup-card {
-  background: white;
+  width: 100%;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
   padding: 40px;
-  border-radius: 15px;
-  width: 380px;
-  box-shadow: 0px 10px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   text-align: center;
-}
-
-.title {
-  color: #6d28d9;
-}
-
-.subtitle {
-  margin-bottom: 20px;
-  color: #6b7280;
 }
 
 .signup-form {
@@ -34,34 +61,49 @@
   margin-top: 10px;
   font-size: 14px;
 }
-
 .signup-form input {
-  padding: 10px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 10px;
   border: 1px solid #ddd;
-  margin-top: 5px;
+  margin-top: 10px;
 }
 
 .signup-form button {
   margin-top: 20px;
   padding: 12px;
-  background: #7c3aed;
+  background: linear-gradient(135deg,#a78bfa,#7c3aed);
   color: white;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.signup-form button:hover {
-  background: #6d28d9;
-}
-
-.login-text {
-  margin-top: 15px;
-  font-size: 14px;
+  border-radius: 10px;
 }
 
 .login-text span {
   color: #7c3aed;
   cursor: pointer;
+}
+
+.signup-left::before,
+.signup-left::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+}
+
+.signup-left::before {
+  width: 200px;
+  height: 200px;
+  top: 50px;
+  left: 50px;
+}
+
+.signup-left::after {
+  width: 300px;
+  height: 300px;
+  bottom: 50px;
+  right: 50px;
+}
+
+.signup-card:hover {
+  transform: translateY(-5px);
 }

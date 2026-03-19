@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "../LandingPage.css";
+import "../styles/LandingPage.css";
 
 function LandingPage() {
   const navigate = useNavigate();
@@ -18,9 +18,6 @@ function LandingPage() {
         <div className="nav-links">
           <a href="#features">Features</a>
           <button className="start-btn" onClick={() => navigate("/login")}>Get Started</button>
-      <button onClick={() => navigate("/dashboard")}>
-        Go to Dashboard
-      </button>
         </div>
 
       </nav>
@@ -29,11 +26,11 @@ function LandingPage() {
 
       {/* HERO SECTION */}
 
-      <section className="hero">
+      <section className="meethero">
 
-        <div className="hero-content">
+        <div className="meethero-content">
 
-          <div className="hero-text">
+          <div className="meethero-text">
 
             <h1>
               Turn Meetings Into <span>Smart AI Minutes</span>
@@ -44,7 +41,7 @@ function LandingPage() {
               summaries, key action items and shareable notes using AI.
             </p>
 
-            <button className="hero-btn">
+            <button className="meethero-btn" onClick={() => navigate("/login")}>
               Start Generating Minutes
             </button>
 
