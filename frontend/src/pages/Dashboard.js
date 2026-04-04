@@ -39,7 +39,7 @@ function Dashboard() {
           </p>
 
           <button className="primary-btn" onClick={() => navigate("/summary")}>
-            Upload Meeting and Generate Summary
+            Generate Summary
           </button>
         </div>
 

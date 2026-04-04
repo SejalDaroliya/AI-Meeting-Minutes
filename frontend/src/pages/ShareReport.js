@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../ShareReport.css";
+import "../styles/ShareReport.css";
 
 function ShareReport() {
 
