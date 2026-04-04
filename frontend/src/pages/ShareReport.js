@@ -1,36 +1,75 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/ShareReport.css";
 
 function ShareReport() {
-
-  const [emails, setEmails] = useState("");
+  const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [participants, setParticipants] = useState([]);
+  const [others, setOthers] = useState([]);
+  const [selectedEmails, setSelectedEmails] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const fetchRecipients = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/get-recipients/1");
+      const data = await res.json();
+
+      setParticipants(data.participants);
+      setOthers(data.non_participants);
+
+      // auto select participants
+      setSelectedEmails(data.participants.map((p) => p.email));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  useEffect(() => {
+    fetchRecipients();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".dropdown-container")) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
+  const toggleEmail = (email) => {
+    setSelectedEmails((prev) =>
+      prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email],
+    );
+  };
 
   const handleSendEmail = async () => {
-
+    if (selectedEmails.length === 0) {
+      setStatus("Please select at least one recipient");
+      return;
+    }
     try {
-
-      const response = await fetch("http://localhost:5000/api/send-report", {
+      const response = await fetch("http://localhost:5000/send-email", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          emails: emails.split(","),
-          report: "Meeting report sent"
-        })
+          meeting_id: 1, // 🔁 later make dynamic
+          selected_emails: selectedEmails, // ✅ THIS IS KEY
+        }),
       });
 
       const data = await response.json();
 
       setStatus(data.message || "Email sent successfully");
-
     } catch (error) {
-
       setStatus("Failed to send email");
-
     }
-
   };
 
   const downloadPDF = () => {
@@ -39,11 +78,9 @@ function ShareReport() {
 
   return (
     <div className="share-page">
-
       <h1 className="title">Meeting Report</h1>
 
       <div className="report-card" id="report">
-
         <h2>Weekly Project Discussion</h2>
 
         <div className="section">
@@ -72,33 +109,95 @@ function ShareReport() {
             <li>Prepare final presentation</li>
           </ul>
         </div>
-
       </div>
 
       <button className="pdf-btn" onClick={downloadPDF}>
         Download PDF
       </button>
 
-
       <div className="email-box">
-
         <h2>Send Report to Participants</h2>
+        <div className="selected-tags">
+          {selectedEmails.map((email) => (
+            <span key={email} className="tag">
+              {email}
+              <span
+                onClick={() => toggleEmail(email)}
+                style={{
+                  marginLeft: "6px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                }}
+              >
+                ✕
+              </span>
+            </span>
+          ))}
+        </div>
+        <div className="dropdown-container">
+          <button
+            className="dropdown-btn"
+            onClick={() => setShowDropdown(!showDropdown)}
+          >
+            {selectedEmails.length > 0
+              ? `${selectedEmails.length} selected`
+              : "Select Recipients ▼"}
+          </button>
 
-        <input
-          type="text"
-          placeholder="Enter emails separated by comma"
-          value={emails}
-          onChange={(e) => setEmails(e.target.value)}
-        />
+          {showDropdown && (
+            <div className="dropdown-menu">
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="search-box"
+              />
+              <h4>Participants</h4>
+              {participants
+                .filter((user) =>
+                  user.name.toLowerCase().includes(search.toLowerCase()),
+                )
+                .map((user) => (
+                  <label key={user.user_id} className="dropdown-item">
+                    <input
+                      type="checkbox"
+                      checked={selectedEmails.includes(user.email)}
+                      onChange={() => toggleEmail(user.email)}
+                    />
+                    <span className="user-text">
+                      {user.name} ({user.email})
+                    </span>
+                  </label>
+                ))}
+
+              <h4>Other Users</h4>
+              {others
+                .filter((user) =>
+                  user.name.toLowerCase().includes(search.toLowerCase()),
+                )
+                .map((user) => (
+                  <label key={user.user_id} className="dropdown-item">
+                    <input
+                      type="checkbox"
+                      checked={selectedEmails.includes(user.email)}
+                      onChange={() => toggleEmail(user.email)}
+                    />
+                    <span className="user-text">
+                      {user.name} ({user.email})
+                    </span>
+                  </label>
+                ))}
+            </div>
+          )}
+        </div>
 
         <button className="send-btn" onClick={handleSendEmail}>
           Send Email
         </button>
 
         {status && <p className="status">{status}</p>}
-
       </div>
-
     </div>
   );
 }
