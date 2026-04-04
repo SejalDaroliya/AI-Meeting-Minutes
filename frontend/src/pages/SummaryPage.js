@@ -10,13 +10,6 @@ function SummaryPage() {
   // 🔥 DATA FROM DASHBOARD
   const data = location.state;
 
-  // DATA STATES (AUTO FILLED)
-  const [keyPoints, setKeyPoints] = useState(data?.key_points || []);
-  const [actions, setActions] = useState(data?.action_items || []);
-  const [decisions, setDecisions] = useState(data?.decisions || []);
-  const [insight, setInsight] = useState(data?.insight || "");
-  const [timeTaken, setTimeTaken] = useState(data?.processing_time || null);
-
   // UI STATES
   const [loading] = useState(false);
 
