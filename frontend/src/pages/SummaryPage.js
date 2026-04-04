@@ -10,6 +10,7 @@ function SummaryPage() {
   // 🔥 DATA FROM DASHBOARD
   const data = location.state;
 
+  //DATA ITEMS
 const keyPoints = data?.key_points || [];
 const actions = data?.action_items || [];
 const decisions = data?.decisions || [];
