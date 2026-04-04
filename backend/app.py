@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 
-# DB
+# DBpython -m pip install flask-cors
 from config.db import get_db_connection
 
 # AI modules
