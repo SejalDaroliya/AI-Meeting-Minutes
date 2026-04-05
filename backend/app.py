@@ -24,6 +24,7 @@ CORS(app, origins=[
     "https://ai-meeting-minutes-delta.vercel.app/"
 ])
 
+
 os.makedirs("temp", exist_ok=True)
 import smtplib
 from email.mime.text import MIMEText
