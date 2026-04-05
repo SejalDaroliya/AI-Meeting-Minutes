@@ -34,7 +34,7 @@ def send_email(to_emails, subject, html_content):
     msg["From"] = EMAIL_USER
     msg["To"] = ", ".join(to_emails)
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
+    with smtplib.SMTP("smtp.gmail.com", 465) as server:
         server.starttls()
         server.login(EMAIL_USER, EMAIL_PASS)
         server.send_message(msg)

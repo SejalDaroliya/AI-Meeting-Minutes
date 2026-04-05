@@ -13,7 +13,7 @@ function ShareReport() {
 
   const fetchRecipients = useCallback(async () => {
   try {
-    const res = await fetch(`${BASE_URL}/get-recipient/1`);
+    const res = await fetch(`${BASE_URL}/get-recipients/1`);
     const data = await res.json();
 
     setParticipants(data.participants);
