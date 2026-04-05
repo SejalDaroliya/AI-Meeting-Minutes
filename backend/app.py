@@ -19,10 +19,14 @@ import bcrypt
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, origins=[
-    "http://localhost:3000",
-    "https://ai-meeting-minutes-delta.vercel.app/"
-])
+CORS(app, supports_credentials=True, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000",
+            "https://ai-meeting-minutes-6gyshe55s-sejaldaroliyas-projects.vercel.app"
+        ]
+    }
+})
 
 
 os.makedirs("temp", exist_ok=True)
