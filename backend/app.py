@@ -19,7 +19,10 @@ import bcrypt
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins=[
+    "http://localhost:3000",
+    "https://ai-meeting-minutes-delta.vercel.app/"
+])
 
 os.makedirs("temp", exist_ok=True)
 import smtplib
