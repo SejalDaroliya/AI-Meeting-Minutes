@@ -8,6 +8,7 @@ function Dashboard() {
   const [username, setUsername] = useState("User");
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const BASE_URL = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -25,7 +26,7 @@ function Dashboard() {
     const user = JSON.parse(localStorage.getItem("user"));
     formData.append("user_id", user.user_id);
 
-    const res = await fetch("http://localhost:5000/process-audio", {
+    const res = await fetch(`${BASE_URL}/process-audio`, {
       method: "POST",
       body: formData,
     });
