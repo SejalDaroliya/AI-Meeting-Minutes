@@ -9,9 +9,11 @@ function ShareReport() {
   const [selectedEmails, setSelectedEmails] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  const BASE_URL = process.env.REACT_APP_API_URL;
+
   const fetchRecipients = async () => {
     try {
-      const res = await fetch("http://localhost:5000/get-recipients/1");
+      const res = await fetch(`${BASE_URL}/get-recipeint/1`);
       const data = await res.json();
 
       setParticipants(data.participants);
@@ -53,7 +55,7 @@ function ShareReport() {
       return;
     }
     try {
-      const response = await fetch("http://localhost:5000/send-email", {
+      const response = await fetch(`${BASE_URL}/send-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
