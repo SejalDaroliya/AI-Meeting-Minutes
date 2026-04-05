@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "../styles/ShareReport.css";
 
 function ShareReport() {
@@ -11,23 +11,23 @@ function ShareReport() {
 
   const BASE_URL = process.env.REACT_APP_API_URL;
 
-  const fetchRecipients = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/get-recipeint/1`);
-      const data = await res.json();
+  const fetchRecipients = useCallback(async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/get-recipient/1`);
+    const data = await res.json();
 
-      setParticipants(data.participants);
-      setOthers(data.non_participants);
+    setParticipants(data.participants);
+    setOthers(data.non_participants);
 
-      // auto select participants
-      setSelectedEmails(data.participants.map((p) => p.email));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    setSelectedEmails(data.participants.map((p) => p.email));
+  } catch (err) {
+    console.error(err);
+  }
+}, [BASE_URL]);
+
   useEffect(() => {
-    fetchRecipients();
-  }, []);
+  fetchRecipients();
+}, [fetchRecipients]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
