@@ -177,12 +177,14 @@ def login():
 
     cur.close()
     conn.close()
-
+    
     if user:
         user_id, name, stored_hash = user
 
         # 🔐 CHECK PASSWORD
         if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+            print("HASH:", stored_hash)
+            print("TYPE:", type(stored_hash))
             return {
                 "success": True,
                 "user": {
@@ -191,6 +193,7 @@ def login():
                     "email": email
                 }
             }
+        
 
     return {"success": False, "message": "Invalid credentials"}
 #get recepients
@@ -338,4 +341,4 @@ def send_email_route_test():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
