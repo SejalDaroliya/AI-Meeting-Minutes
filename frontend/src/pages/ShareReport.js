@@ -50,29 +50,35 @@ function ShareReport() {
   };
 
   const handleSendEmail = async () => {
-    if (selectedEmails.length === 0) {
-      setStatus("Please select at least one recipient");
-      return;
-    }
-    try {
-      const response = await fetch(`${BASE_URL}/send-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          meeting_id: 1, // 🔁 later make dynamic
-          selected_emails: selectedEmails, // ✅ THIS IS KEY
-        }),
-      });
+  if (selectedEmails.length === 0) {
+    setStatus("Please select at least one recipient");
+    return;
+  }
 
-      const data = await response.json();
+  try {
+    const response = await fetch(`${BASE_URL}/send-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        meeting_id: 1,
+        selected_emails: selectedEmails,
+      }),
+    });
 
+    const data = await response.json();
+
+    if (response.ok) {
       setStatus(data.message || "Email sent successfully");
-    } catch (error) {
-      setStatus("Failed to send email");
+    } else {
+      setStatus(data.error || "Failed to send email");
     }
-  };
+
+  } catch (error) {
+    setStatus("Server error. Try again.");
+  }
+};
 
   const downloadPDF = () => {
     window.print();
