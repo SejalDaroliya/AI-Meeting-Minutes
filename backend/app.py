@@ -16,28 +16,63 @@ from dotenv import load_dotenv
 import os
 import bcrypt
 
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
+
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000",
+            "https://ai-meeting-minutes-6gyshe55s-sejaldaroliyas-projects.vercel.app"
+        ]
+    }
+})
+
 
 os.makedirs("temp", exist_ok=True)
-import smtplib
-from email.mime.text import MIMEText
 
-EMAIL_USER = os.getenv("EMAIL_USER")
-EMAIL_PASS = os.getenv("EMAIL_PASS")
 
-def send_email(to_emails, subject, html_content):
-    msg = MIMEText(html_content, "html")
-    msg["Subject"] = subject
-    msg["From"] = EMAIL_USER
-    msg["To"] = ", ".join(to_emails)
+def send_email(to_emails, subject, html):
+    import sib_api_v3_sdk
+    from sib_api_v3_sdk.rest import ApiException
+    import os
 
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(EMAIL_USER, EMAIL_PASS)
-        server.send_message(msg)
+    configuration = sib_api_v3_sdk.Configuration()
+    configuration.api_key['api-key'] = os.getenv("BREVO_API_KEY")
+    print("BREVO_API_KEY:", os.getenv("BREVO_API_KEY"))
+    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(
+        sib_api_v3_sdk.ApiClient(configuration)
+    )
+
+    to_list = [{"email": email} for email in to_emails]
+
+    text_content = "Meeting Summary\n\n" + subject
+
+    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+        to=to_list,
+        subject=subject,
+        html_content=html,
+        text_content=text_content,
+        sender={
+            "email": "sejal.daroliya04@gmail.com",   # ✅ KEY CHANGE
+            "name": "AI Meeting App"
+        },
+        reply_to={
+            "email": "sejal.daroliya04@gmail.com",
+            "name": "Sejal"
+        }
+    )
+
+    try:
+        response = api_instance.send_transac_email(send_smtp_email)
+        print("BREVO RESPONSE:", response)
+        return True
+    except ApiException as e:
+        print("BREVO ERROR:", e)
+        return False
 
 # ---------------- BASIC ROUTES ---------------- #
 
@@ -177,12 +212,14 @@ def login():
 
     cur.close()
     conn.close()
-
+    
     if user:
         user_id, name, stored_hash = user
 
         # 🔐 CHECK PASSWORD
         if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
+            print("HASH:", stored_hash)
+            print("TYPE:", type(stored_hash))
             return {
                 "success": True,
                 "user": {
@@ -191,6 +228,7 @@ def login():
                     "email": email
                 }
             }
+        
 
     return {"success": False, "message": "Invalid credentials"}
 #get recepients
@@ -239,14 +277,18 @@ def send_email_route():
     data = request.json
 
     meeting_id = data.get("meeting_id")
-    selected_emails = data.get("selected_emails", [])
+    selected_emails = list(set(data.get("selected_emails", [])))
 
-    selected_emails = list(set(selected_emails))
+    if not selected_emails:
+        return jsonify({"error": "No recipients selected"}), 400
 
     conn = get_db_connection()
     cur = conn.cursor()
 
-    cur.execute("SELECT title, meeting_date FROM meetings WHERE meeting_id=%s", (meeting_id,))
+    cur.execute(
+        "SELECT title, meeting_date FROM meetings WHERE meeting_id=%s",
+        (meeting_id,)
+    )
     meeting = cur.fetchone()
 
     cur.execute("""
@@ -265,31 +307,35 @@ def send_email_route():
     title, date = meeting
     summary_text, key_points, action_items = summary
 
-    key_points = json.loads(key_points)
-    action_items = json.loads(action_items)
+    key_points = json.loads(key_points) if key_points else []
+    action_items = json.loads(action_items) if action_items else []
 
     html = f"""
-    <h2>{title}</h2>
-    <p><b>Date:</b> {date}</p>
+    <div style="font-family: Arial; padding: 20px;">
+        <h2>{title}</h2>
+        <p><b>Date:</b> {date}</p>
 
-    <h3>Summary</h3>
-    <p>{summary_text}</p>
+        <h3>Summary</h3>
+        <p>{summary_text}</p>
 
-    <h3>Key Points</h3>
-    <ul>
-        {''.join([f"<li>{kp}</li>" for kp in key_points])}
-    </ul>
+        <h3>Key Points</h3>
+        <ul>
+            {''.join(f"<li>{kp}</li>" for kp in key_points)}
+        </ul>
 
-    <h3>Action Items</h3>
-    <ul>
-        {''.join([f"<li>{ai}</li>" for ai in action_items])}
-    </ul>
+        <h3>Action Items</h3>
+        <ul>
+            {''.join(f"<li>{ai}</li>" for ai in action_items)}
+        </ul>
+    </div>
     """
 
-    send_email(selected_emails, f"Meeting Summary: {title}", html)
+    success = send_email(selected_emails, f"Meeting Summary: {title}", html)
 
-    return jsonify({"message": "Email sent successfully"})
-    # raise Exception("LOGIN HIT")
+    if success:
+        return jsonify({"message": "Email sent successfully"})
+    else:
+        return jsonify({"error": "Failed to send email"}), 500
 #test route
 @app.route("/test-send-email")
 def test_send_email():
@@ -338,4 +384,4 @@ def send_email_route_test():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, port=port)
+    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)

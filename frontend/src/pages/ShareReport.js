@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "../styles/ShareReport.css";
 
 function ShareReport() {
@@ -9,23 +9,25 @@ function ShareReport() {
   const [selectedEmails, setSelectedEmails] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const fetchRecipients = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/get-recipients/1");
-      const data = await res.json();
+  const BASE_URL = process.env.REACT_APP_API_URL;
 
-      setParticipants(data.participants);
-      setOthers(data.non_participants);
+  const fetchRecipients = useCallback(async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/get-recipients/1`);
+    const data = await res.json();
 
-      // auto select participants
-      setSelectedEmails(data.participants.map((p) => p.email));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    setParticipants(data.participants);
+    setOthers(data.non_participants);
+
+    setSelectedEmails(data.participants.map((p) => p.email));
+  } catch (err) {
+    console.error(err);
+  }
+}, [BASE_URL]);
+
   useEffect(() => {
-    fetchRecipients();
-  }, []);
+  fetchRecipients();
+}, [fetchRecipients]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -48,29 +50,35 @@ function ShareReport() {
   };
 
   const handleSendEmail = async () => {
-    if (selectedEmails.length === 0) {
-      setStatus("Please select at least one recipient");
-      return;
-    }
-    try {
-      const response = await fetch("http://localhost:5000/send-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          meeting_id: 1, // 🔁 later make dynamic
-          selected_emails: selectedEmails, // ✅ THIS IS KEY
-        }),
-      });
+  if (selectedEmails.length === 0) {
+    setStatus("Please select at least one recipient");
+    return;
+  }
 
-      const data = await response.json();
+  try {
+    const response = await fetch(`${BASE_URL}/send-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        meeting_id: 1,
+        selected_emails: selectedEmails,
+      }),
+    });
 
+    const data = await response.json();
+
+    if (response.ok) {
       setStatus(data.message || "Email sent successfully");
-    } catch (error) {
-      setStatus("Failed to send email");
+    } else {
+      setStatus(data.error || "Failed to send email");
     }
-  };
+
+  } catch (error) {
+    setStatus("Server error. Try again.");
+  }
+};
 
   const downloadPDF = () => {
     window.print();
