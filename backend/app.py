@@ -157,6 +157,7 @@ def process_audio():
 
         return jsonify({
             "success": True,
+            "meeting_id": meeting_id,
             "processing_time": processing_time,
             "transcript": transcript,
             "insight": data.get("insight", ""),
@@ -231,6 +232,39 @@ def login():
         
 
     return {"success": False, "message": "Invalid credentials"}
+#get meeting report
+@app.route("/get-meeting/<int:meeting_id>", methods=["GET"])
+def get_meeting(meeting_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT m.title, s.summary_text, s.key_points, s.action_items
+            FROM meetings m
+            JOIN summaries s ON m.meeting_id = s.meeting_id
+            WHERE m.meeting_id = %s
+        """, (meeting_id,))
+
+        data = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        if not data:
+            return {"error": "Meeting not found"}, 404
+        
+        return {
+            "title": data[0],
+            "summary": data[1],
+            "key_points": data[2],
+            "action_items": data[3]
+        }
+
+     
+    except Exception as e:
+        return {"error": str(e)}, 500
+    
 #get recepients
 @app.route("/get-recipients/<int:meeting_id>", methods=["GET"])
 def get_recipients(meeting_id):
@@ -275,6 +309,7 @@ def get_recipients(meeting_id):
 @app.route("/send-email", methods=["POST"])
 def send_email_route():
     data = request.json
+    report = data.get("report")
 
     meeting_id = data.get("meeting_id")
     selected_emails = list(set(data.get("selected_emails", [])))
@@ -307,9 +342,15 @@ def send_email_route():
     title, date = meeting
     summary_text, key_points, action_items = summary
 
-    key_points = json.loads(key_points) if key_points else []
-    action_items = json.loads(action_items) if action_items else []
+    # ✅ USE EDITED DATA IF AVAILABLE
+    if report:
+     summary_text = report.get("summary", summary_text)
+     key_points = report.get("key_points", key_points)
+     action_items = report.get("action_items", action_items)
+     title = report.get("title", title)
 
+    key_points = key_points or []
+    action_items = action_items or []
     html = f"""
     <div style="font-family: Arial; padding: 20px;">
         <h2>{title}</h2>

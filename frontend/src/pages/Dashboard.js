@@ -9,6 +9,7 @@ function Dashboard() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const BASE_URL = process.env.REACT_APP_API_URL;
+  console.log("BASE_URL:", BASE_URL);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -31,12 +32,15 @@ function Dashboard() {
       body: formData,
     });
 
-    return await res.json();
+    const result = await res.json(); // ✅ STORE HERE
+
+    console.log("Upload Result:", result); // 🔍 debug
+
+    return result; // ✅ return full response
   };
 
   return (
     <div className="dashboard">
-
       {/* Navbar */}
       <div className="navbar">
         <h2 className="logo">AI Meeting Minutes</h2>
@@ -53,17 +57,15 @@ function Dashboard() {
 
       {/* Hero Section */}
       <div className="hero">
-
         <div className="hero-text">
           <h1>Welcome, {username} 👋</h1>
           <p>
-            Upload meeting audio and let AI generate structured
-            meeting minutes, summaries and key action items.
+            Upload meeting audio and let AI generate structured meeting minutes,
+            summaries and key action items.
           </p>
 
           {/* BUTTONS */}
           <div className="hero-buttons">
-
             {/* Upload Button */}
             <label className="secondary-btn">
               Upload Meeting
@@ -95,11 +97,15 @@ function Dashboard() {
                   const result = await uploadAudio(selectedFile);
 
                   if (result && result.success) {
-                    navigate("/summary", { state: result });
+                    navigate("/summary", {
+                      state: {
+                        ...result,
+                        meeting_id: result.meeting_id,
+                      },
+                    });
                   } else {
                     alert("Something went wrong");
                   }
-
                 } catch (err) {
                   console.error(err);
                   alert("Server error");
@@ -110,7 +116,6 @@ function Dashboard() {
             >
               {loading ? "Processing..." : "Generate Summary"}
             </button>
-
           </div>
 
           {/* 🔥 Selected file name */}
@@ -119,7 +124,6 @@ function Dashboard() {
               📁 {selectedFile.name}
             </p>
           )}
-
         </div>
 
         {/* AI Illustration */}
@@ -128,7 +132,6 @@ function Dashboard() {
           <div className="circle medium"></div>
           <div className="circle small"></div>
         </div>
-
       </div>
 
       {/* Stats */}
@@ -173,7 +176,6 @@ function Dashboard() {
           <button>View</button>
         </div>
       </div>
-
     </div>
   );
 }

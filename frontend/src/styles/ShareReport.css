@@ -12,10 +12,10 @@ margin-bottom:30px;
 color:#3b2f80;
 }
 
-.report-card{
-background:white;
-width:700px;
-margin:auto;
+.report-card {
+width: 100%;
+max-width: 700px;
+margin: auto;
 padding:40px;
 border-radius:14px;
 box-shadow:0 10px 25px rgba(0,0,0,0.1);
@@ -50,7 +50,9 @@ border-radius:8px;
 cursor:pointer;
 }
 
-.email-box{
+.email-box {
+text-align: center;
+
 margin-top:50px;
 }
 
@@ -62,13 +64,26 @@ border:1px solid #ccc;
 margin-right:10px;
 }
 
-.send-btn{
-padding:10px 20px;
-background:#7c3aed;
-border:none;
-color:white;
-border-radius:6px;
-cursor:pointer;
+.send-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  border: none;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.send-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(124, 58, 237, 0.4);
+}
+
+/* click feel */
+.send-btn:active {
+  transform: scale(0.95);
 }
 
 .status{
@@ -92,50 +107,75 @@ font-weight:500;
 }
 
 /* ---------- DROPDOWN CONTAINER ---------- */
+
 .dropdown-container {
   position: relative;
-  width: 320px;
-  margin: 20px auto;
+  display: inline-block;
 }
 
 /* ---------- BUTTON ---------- */
 .dropdown-btn {
-  width: 100%;
-  padding: 10px;
   background: linear-gradient(135deg, #7c3aed, #5b21b6);
   color: white;
   border: none;
-  border-radius: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
 
+.dropdown-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.send-btn:hover,
+.dropdown-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.dropdown-btn,
+.send-btn {
+  min-width: 180px;
+}
+
+.button-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+}
 /* ---------- DROPDOWN MENU ---------- */
 .dropdown-menu {
   position: absolute;
-  width: 100%;
-  max-height: 260px;
-  overflow-y: auto;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 10px;
-  margin-top: 5px;
-  z-index: 10;
+  top: 0;
+  left: 110%;   /* 👉 moves it to RIGHT side */
 
-  /* ✨ premium look */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  width: 320px;
+  max-height: 300px;
+  overflow-y: auto;
+
+  background: white;
+  border-radius: 14px;
+  padding: 15px;
+
+  z-index: 999;
+
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
 }
+
 
 /* ---------- SEARCH BOX ---------- */
 .search-box {
   width: 100%;
   padding: 8px;
   margin-bottom: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  border-radius: 8px;
+  border: 1px solid #ddd;
 }
-
 /* ---------- DROPDOWN ITEM (FIXED ALIGNMENT) ---------- */
 /* ---------- DROPDOWN ITEM FIX ---------- */
 .dropdown-item {
@@ -143,9 +183,10 @@ font-weight:500;
   align-items: center;
   gap: 10px;
   padding: 8px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
 }
+
 
 /* checkbox */
 .dropdown-item input {
@@ -166,6 +207,11 @@ font-weight:500;
   background: #f3f0ff;
 }
 
+.dropdown-menu h4 {
+  margin: 10px 0;
+  font-size: 13px;
+  color: #6b7280;
+}
 /* ---------- TAGS (SELECTED EMAILS) ---------- */
 .selected-tags {
   margin-bottom: 10px;
@@ -189,24 +235,175 @@ font-weight:500;
   cursor: pointer;
 }
 
+.edit-box {
+  width: 100%;
+  min-height: 120px;
+
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;          /* 🔥 slightly bigger */
+  line-height: 1.8;         /* 🔥 better readability */
+  color: #374151;
+
+  padding: 0;               /* remove box feel */
+  border: none;             /* remove input look */
+  background: transparent;
+
+  outline: none;
+}
+.edit-box:focus {
+  border-color: #7c3aed;
+  background-color: #ffffff;
+}
+
+.section h3 {
+  margin-bottom: 10px;
+}
+.section {
+  margin-top: 25px;
+}
+
+.edit-box {
+  margin-top: 5px;
+} 
+
+.edit-box {
+  font-size: 16px;
+  line-height: 1.8;
+}
+.edit-input {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.edit-box {
+  font-family: inherit;
+}
+
+.summary-container {
+  background: #f9fafb;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+}
+
+.summary-container ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* edit icon button */
+.edit-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  opacity: 0.6;
+  transition: 0.2s;
+}
+
+.edit-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* normal text view */
+.summary-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #374151;
+}
+
+/* header alignment */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* edit button */
+.edit-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #6d28d9;
+  font-weight: 500;
+}
+
+/* action buttons */
+.edit-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+/* save */
+.save-btn {
+  background: #7c3aed;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* cancel */
+.cancel-btn {
+  background: #e5e7eb;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
 /* PRINT PDF */
 
-@media print{
+@media print {
 
-body *{
-visibility:hidden;
+  body * {
+    visibility: hidden;
+  }
+
+  #report, #report * {
+    visibility: visible;
+  }
+
+  #report {
+    position: static;           /* ✅ FIX */
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  .report-card {
+    width: 100%;
+    max-width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 20px;
+  }
+
+  @media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
 }
-
-#report, #report *{
-visibility:visible;
+@media print {
+  .share-page {
+    padding: 0;
+    background: white;
+  }
 }
-
-#report{
-position:absolute;
-left:0;
-top:0;
-width:100%;
-}
-
 }
