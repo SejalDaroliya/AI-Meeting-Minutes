@@ -1,33 +1,86 @@
 import React, { useState, useEffect, useCallback } from "react";
 import "../styles/ShareReport.css";
+import { useLocation } from "react-router-dom";
 
 function ShareReport() {
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [tempTitle, setTempTitle] = useState("");
+
+  const [isEditingSummary, setIsEditingSummary] = useState(false);
+  const [tempSummary, setTempSummary] = useState("");
+
+  const [isEditingKP, setIsEditingKP] = useState(false);
+  const [tempKP, setTempKP] = useState([]);
+
+  const [isEditingAI, setIsEditingAI] = useState(false);
+  const [tempAI, setTempAI] = useState([]);
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [participants, setParticipants] = useState([]);
   const [others, setOthers] = useState([]);
   const [selectedEmails, setSelectedEmails] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-
+  const [report, setReport] = useState(null);
   const BASE_URL = process.env.REACT_APP_API_URL;
 
+  const location = useLocation();
+  const meetingId = location.state?.meeting_id;
+
+  console.log("Meeting ID:", meetingId);
+  console.log("BASE_URL:", BASE_URL);
+  const [editableReport, setEditableReport] = useState({
+    title: "",
+    summary: "",
+    key_points: [],
+    action_items: [],
+  });
+
   const fetchRecipients = useCallback(async () => {
-  try {
-    const res = await fetch(`${BASE_URL}/get-recipients/1`);
-    const data = await res.json();
+    if (!meetingId) {
+      console.log("No meeting ID found");
+      return;
+    }
+    try {
+      const res = await fetch(`${BASE_URL}/get-recipients/${meetingId}`);
+      const data = await res.json();
 
-    setParticipants(data.participants);
-    setOthers(data.non_participants);
+      setParticipants(data.participants);
+      setOthers(data.non_participants);
 
-    setSelectedEmails(data.participants.map((p) => p.email));
-  } catch (err) {
-    console.error(err);
-  }
-}, [BASE_URL]);
+      setSelectedEmails(data.participants.map((p) => p.email));
+    } catch (err) {
+      console.error(err);
+    }
+  }, [BASE_URL, meetingId]);
 
   useEffect(() => {
-  fetchRecipients();
-}, [fetchRecipients]);
+    if (meetingId) {
+      fetchRecipients();
+      fetchReport();
+    }
+  }, [meetingId]);
+
+  const fetchReport = async () => {
+    if (!meetingId) return;
+
+    try {
+      const res = await fetch(`${BASE_URL}/get-meeting/${meetingId}`);
+      const data = await res.json();
+
+      setReport(data);
+
+      // report edit
+      setEditableReport({
+        title: data.title || "",
+        summary: data.summary || "",
+        key_points: data.key_points || [],
+        action_items: data.action_items || [],
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -50,35 +103,35 @@ function ShareReport() {
   };
 
   const handleSendEmail = async () => {
-  if (selectedEmails.length === 0) {
-    setStatus("Please select at least one recipient");
-    return;
-  }
-
-  try {
-    const response = await fetch(`${BASE_URL}/send-email`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        meeting_id: 1,
-        selected_emails: selectedEmails,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setStatus(data.message || "Email sent successfully");
-    } else {
-      setStatus(data.error || "Failed to send email");
+    if (selectedEmails.length === 0) {
+      setStatus("Please select at least one recipient");
+      return;
     }
 
-  } catch (error) {
-    setStatus("Server error. Try again.");
-  }
-};
+    try {
+      const response = await fetch(`${BASE_URL}/send-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          meeting_id: meetingId,
+          selected_emails: selectedEmails,
+          report: editableReport, // ✅ SEND EDITED DATA
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatus(data.message || "Email sent successfully");
+      } else {
+        setStatus(data.error || "Failed to send email");
+      }
+    } catch (error) {
+      setStatus("Server error. Try again.");
+    }
+  };
 
   const downloadPDF = () => {
     window.print();
@@ -89,33 +142,249 @@ function ShareReport() {
       <h1 className="title">Meeting Report</h1>
 
       <div className="report-card" id="report">
-        <h2>Weekly Project Discussion</h2>
-
         <div className="section">
-          <h3>Summary</h3>
-          <p>
-            The team discussed the progress of the AI Meeting Minutes system.
-            The landing page and login modules have been completed and AI
-            summarization is currently being tested.
-          </p>
+          <div className="section-header">
+            <h2>{isEditingTitle ? tempTitle : editableReport.title}</h2>
+
+            {!isEditingTitle && (
+              <button
+                className="edit-btn"
+                onClick={() => {
+                  setTempTitle(editableReport.title);
+                  setIsEditingTitle(true);
+                }}
+              >
+                ✏️
+              </button>
+            )}
+          </div>
+
+          {isEditingTitle && (
+            <>
+              <input
+                className="edit-input"
+                value={tempTitle}
+                onChange={(e) => setTempTitle(e.target.value)}
+              />
+
+              <div className="edit-actions">
+                <button
+                  className="save-btn"
+                  onClick={() => {
+                    setEditableReport({
+                      ...editableReport,
+                      title: tempTitle,
+                    });
+                    setIsEditingTitle(false);
+                  }}
+                >
+                  Save
+                </button>
+
+                <button
+                  className="cancel-btn"
+                  onClick={() => setIsEditingTitle(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="section">
-          <h3>Key Points</h3>
-          <ul>
-            <li>Landing page completed</li>
-            <li>Login system integrated</li>
-            <li>AI summary module under testing</li>
-          </ul>
+          <div className="section-header">
+            <h3>Summary</h3>
+
+            {!isEditingSummary && (
+              <button
+                className="edit-btn"
+                onClick={() => {
+                  setTempSummary(editableReport.summary);
+                  setIsEditingSummary(true);
+                }}
+              >
+                ✏️
+              </button>
+            )}
+          </div>
+
+          <div className="summary-container">
+            {isEditingSummary ? (
+              <>
+                <div
+                  contentEditable
+                  className="edit-box"
+                  suppressContentEditableWarning={true}
+                  onInput={(e) => setTempSummary(e.currentTarget.innerText)}
+                >
+                  {tempSummary}
+                </div>
+
+                <div className="edit-actions">
+                  <button
+                    className="save-btn"
+                    onClick={() => {
+                      setEditableReport({
+                        ...editableReport,
+                        summary: tempSummary,
+                      });
+                      setIsEditingSummary(false);
+                    }}
+                  >
+                    Save
+                  </button>
+
+                  <button
+                    className="cancel-btn"
+                    onClick={() => setIsEditingSummary(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p className="summary-text">{editableReport.summary}</p>
+            )}
+          </div>
         </div>
 
         <div className="section">
-          <h3>Action Items</h3>
-          <ul>
-            <li>Connect SMTP email service</li>
-            <li>Test full workflow</li>
-            <li>Prepare final presentation</li>
-          </ul>
+          <div className="section-header">
+            <h3>Key Points</h3>
+
+            {!isEditingKP && (
+              <button
+                className="edit-btn"
+                onClick={() => {
+                  setTempKP([...editableReport.key_points]);
+                  setIsEditingKP(true);
+                }}
+              >
+                ✏️
+              </button>
+            )}
+          </div>
+
+          {isEditingKP ? (
+            <>
+              {tempKP.map((point, i) => (
+                <input
+                  key={i}
+                  className="edit-input"
+                  value={point}
+                  onChange={(e) => {
+                    const updated = [...tempKP];
+                    updated[i] = e.target.value;
+                    setTempKP(updated);
+                  }}
+                />
+              ))}
+
+              <div className="edit-actions">
+                <button
+                  className="save-btn"
+                  onClick={() => {
+                    setEditableReport({
+                      ...editableReport,
+                      key_points: tempKP,
+                    });
+                    setIsEditingKP(false);
+                  }}
+                >
+                  Save
+                </button>
+
+                <button
+                  className="cancel-btn"
+                  onClick={() => setIsEditingKP(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="summary-container">
+              <ul>
+                {editableReport.key_points.map((point, i) => (
+                  <li key={i}>{point}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div className="section">
+          <div className="section-header">
+            <h3>Action Items</h3>
+
+            {!isEditingAI && (
+              <button
+                className="edit-btn"
+                onClick={() => {
+                  setTempAI([...editableReport.action_items]);
+                  setIsEditingAI(true);
+                }}
+              >
+                ✏️
+              </button>
+            )}
+          </div>
+
+          {isEditingAI ? (
+            <>
+              {tempAI.map((item, i) => (
+                <input
+                  key={i}
+                  className="edit-input"
+                  value={item}
+                  onChange={(e) => {
+                    const updated = [...tempAI];
+                    updated[i] = e.target.value;
+                    setTempAI(updated);
+                  }}
+                />
+              ))}
+
+              {/* ➕ Add new item */}
+              <button
+                className="add-btn"
+                onClick={() => setTempAI([...tempAI, ""])}
+              >
+                + Add Item
+              </button>
+
+              <div className="edit-actions">
+                <button
+                  className="save-btn"
+                  onClick={() => {
+                    setEditableReport({
+                      ...editableReport,
+                      action_items: tempAI,
+                    });
+                    setIsEditingAI(false);
+                  }}
+                >
+                  Save
+                </button>
+
+                <button
+                  className="cancel-btn"
+                  onClick={() => setIsEditingAI(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="summary-container">
+              <ul>
+                {editableReport.action_items.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
@@ -142,67 +411,70 @@ function ShareReport() {
             </span>
           ))}
         </div>
-        <div className="dropdown-container">
-          <button
-            className="dropdown-btn"
-            onClick={() => setShowDropdown(!showDropdown)}
-          >
-            {selectedEmails.length > 0
-              ? `${selectedEmails.length} selected`
-              : "Select Recipients ▼"}
+        <div className="button-row">
+          <div className="dropdown-container">
+            <button
+              className="dropdown-btn"
+              onClick={() => setShowDropdown(!showDropdown)}
+            >
+              {selectedEmails.length > 0
+                ? `${selectedEmails.length} selected`
+                : "Select Recipients ▼"}
+            </button>
+
+            {showDropdown && (
+              <div className="dropdown-menu">
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="search-box"
+                />
+
+                <h4>Participants</h4>
+                {participants
+                  .filter((user) =>
+                    user.name.toLowerCase().includes(search.toLowerCase()),
+                  )
+                  .map((user) => (
+                    <label key={user.user_id} className="dropdown-item">
+                      <input
+                        type="checkbox"
+                        checked={selectedEmails.includes(user.email)}
+                        onChange={() => toggleEmail(user.email)}
+                      />
+                      <span className="user-text">
+                        {user.name} ({user.email})
+                      </span>
+                    </label>
+                  ))}
+
+                <h4>Other Users</h4>
+                {others
+                  .filter((user) =>
+                    user.name.toLowerCase().includes(search.toLowerCase()),
+                  )
+                  .map((user) => (
+                    <label key={user.user_id} className="dropdown-item">
+                      <input
+                        type="checkbox"
+                        checked={selectedEmails.includes(user.email)}
+                        onChange={() => toggleEmail(user.email)}
+                      />
+                      <span className="user-text">
+                        {user.name} ({user.email})
+                      </span>
+                    </label>
+                  ))}
+              </div>
+            )}
+          </div>
+
+          <button className="send-btn" onClick={handleSendEmail}>
+            Send Email
           </button>
-
-          {showDropdown && (
-            <div className="dropdown-menu">
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="search-box"
-              />
-              <h4>Participants</h4>
-              {participants
-                .filter((user) =>
-                  user.name.toLowerCase().includes(search.toLowerCase()),
-                )
-                .map((user) => (
-                  <label key={user.user_id} className="dropdown-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedEmails.includes(user.email)}
-                      onChange={() => toggleEmail(user.email)}
-                    />
-                    <span className="user-text">
-                      {user.name} ({user.email})
-                    </span>
-                  </label>
-                ))}
-
-              <h4>Other Users</h4>
-              {others
-                .filter((user) =>
-                  user.name.toLowerCase().includes(search.toLowerCase()),
-                )
-                .map((user) => (
-                  <label key={user.user_id} className="dropdown-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedEmails.includes(user.email)}
-                      onChange={() => toggleEmail(user.email)}
-                    />
-                    <span className="user-text">
-                      {user.name} ({user.email})
-                    </span>
-                  </label>
-                ))}
-            </div>
-          )}
         </div>
-
-        <button className="send-btn" onClick={handleSendEmail}>
-          Send Email
-        </button>
 
         {status && <p className="status">{status}</p>}
       </div>

@@ -9,6 +9,8 @@ function Dashboard() {
   const [username, setUsername] = useState("User");
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const BASE_URL = process.env.REACT_APP_API_URL;
+  console.log("BASE_URL:", BASE_URL);
   const [isRecording, setIsRecording] = useState(false);
 
   // 🔥 NEW STATES
@@ -20,9 +22,6 @@ function Dashboard() {
   });
 
   const [recentMeetings, setRecentMeetings] = useState([]);
-
-  const BASE_URL = "http://localhost:5000";
-
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
 
@@ -77,12 +76,15 @@ function Dashboard() {
       body: formData,
     });
 
-    return await res.json();
+    const result = await res.json(); // ✅ STORE HERE
+
+    console.log("Upload Result:", result); // 🔍 debug
+
+    return result; // ✅ return full response
   };
 
   return (
     <div className="dashboard">
-
       {/* Navbar */}
       <div className="navbar">
         <h2 className="logo">AI Meeting Minutes</h2>
@@ -99,18 +101,16 @@ function Dashboard() {
 
       {/* Hero */}
       <div className="hero">
-
         <div className="hero-text">
           <h1>Welcome, {username} 👋</h1>
           <p>
-            Upload meeting audio and let AI generate structured
-            meeting minutes, summaries and key action items.
+            Upload meeting audio and let AI generate structured meeting minutes,
+            summaries and key action items.
           </p>
 
           {/* Buttons */}
           <div className="hero-buttons">
-
-            {/* Upload */}
+            {/* Upload Button */}
             <label className="secondary-btn">
               Upload Meeting
               <input
@@ -139,11 +139,15 @@ function Dashboard() {
                   const result = await uploadAudio(selectedFile);
 
                   if (result && result.success) {
-                    navigate("/summary", { state: result });
+                    navigate("/summary", {
+                      state: {
+                        ...result,
+                        meeting_id: result.meeting_id,
+                      },
+                    });
                   } else {
                     alert("Something went wrong");
                   }
-
                 } catch (err) {
                   console.error(err);
                   alert("Server error");
@@ -172,7 +176,6 @@ function Dashboard() {
           {isRecording && (
             <p className="recording-text">🎙️ Recording...</p>
           )}
-
         </div>
 
         {/* Illustration */}
@@ -181,7 +184,6 @@ function Dashboard() {
           <div className="circle medium"></div>
           <div className="circle small"></div>
         </div>
-
       </div>
 
       {/* 🔥 DYNAMIC STATS */}
@@ -231,7 +233,6 @@ function Dashboard() {
         )}
 
       </div>
-
     </div>
   );
 }
