@@ -4,19 +4,65 @@ import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
   const navigate = useNavigate();
+  
 
   const [username, setUsername] = useState("User");
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const BASE_URL = process.env.REACT_APP_API_URL;
+  const [isRecording, setIsRecording] = useState(false);
+
+  // 🔥 NEW STATES
+  const [stats, setStats] = useState({
+    meetings: 0,
+    minutes: 0,
+    actions: 0,
+    files: 0
+  });
+
+  const [recentMeetings, setRecentMeetings] = useState([]);
+
+  const BASE_URL = "http://localhost:5000";
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUsername(user.name);
+
+      // 🔥 FETCH DATA
+      fetchStats(user.user_id);
+      fetchMeetings(user.user_id);
     }
   }, []);
+
+  // 🎤 MIC CLICK
+  const handleMicClick = () => {
+    setIsRecording((prev) => !prev);
+  };
+
+  // 🔥 FETCH STATS
+  const fetchStats = async (userId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/user-stats/${userId}`);
+      const data = await res.json();
+      setStats(data);
+      console.log("STATS DATA:", data);
+    } catch (err) {
+      console.error("Stats error:", err);
+    }
+  };
+
+  // 🔥 FETCH RECENT MEETINGS
+  const fetchMeetings = async (userId) => {
+    try {
+      const res = await fetch(`${BASE_URL}/user-meetings/${userId}`);
+      const data = await res.json();
+      setRecentMeetings(data);
+    } catch (err) {
+      console.error("Meetings error:", err);
+    }
+  };
 
   // 🔥 API CALL
   const uploadAudio = async (file) => {
@@ -51,7 +97,7 @@ function Dashboard() {
         </button>
       </div>
 
-      {/* Hero Section */}
+      {/* Hero */}
       <div className="hero">
 
         <div className="hero-text">
@@ -61,10 +107,10 @@ function Dashboard() {
             meeting minutes, summaries and key action items.
           </p>
 
-          {/* BUTTONS */}
+          {/* Buttons */}
           <div className="hero-buttons">
 
-            {/* Upload Button */}
+            {/* Upload */}
             <label className="secondary-btn">
               Upload Meeting
               <input
@@ -73,14 +119,12 @@ function Dashboard() {
                 hidden
                 onChange={(e) => {
                   const file = e.target.files[0];
-                  if (file) {
-                    setSelectedFile(file);
-                  }
+                  if (file) setSelectedFile(file);
                 }}
               />
             </label>
 
-            {/* Generate Summary */}
+            {/* Generate */}
             <button
               className="primary-btn"
               onClick={async () => {
@@ -111,18 +155,27 @@ function Dashboard() {
               {loading ? "Processing..." : "Generate Summary"}
             </button>
 
+            {/* 🎤 MIC */}
+            <button
+              className={`mic-btn ${isRecording ? "recording" : ""}`}
+              onClick={handleMicClick}
+            >
+              <div className="mic-icon"></div>
+            </button>
+
           </div>
 
-          {/* 🔥 Selected file name */}
           {selectedFile && (
-            <p style={{ marginTop: "10px", color: "#555" }}>
-              📁 {selectedFile.name}
-            </p>
+            <p className="file-name">📁 {selectedFile.name}</p>
+          )}
+
+          {isRecording && (
+            <p className="recording-text">🎙️ Recording...</p>
           )}
 
         </div>
 
-        {/* AI Illustration */}
+        {/* Illustration */}
         <div className="hero-illustration">
           <div className="circle big"></div>
           <div className="circle medium"></div>
@@ -131,47 +184,52 @@ function Dashboard() {
 
       </div>
 
-      {/* Stats */}
+      {/* 🔥 DYNAMIC STATS */}
       <div className="stats-container">
+
         <div className="stat-card">
-          <h3>12</h3>
+          <h3>{stats.meetings}</h3>
           <p>Meetings Uploaded</p>
         </div>
 
         <div className="stat-card">
-          <h3>10</h3>
+          <h3>{stats.minutes}</h3>
           <p>Minutes Generated</p>
         </div>
 
         <div className="stat-card">
-          <h3>34</h3>
+          <h3>{stats.actions}</h3>
           <p>Action Items</p>
         </div>
 
         <div className="stat-card">
-          <h3>8</h3>
+          <h3>{stats.files}</h3>
           <p>Files Uploaded</p>
         </div>
+
       </div>
 
-      {/* Recent Meetings */}
+      {/* 🔥 DYNAMIC RECENT MEETINGS */}
       <div className="recent">
         <h2>Recent Meetings</h2>
 
-        <div className="meeting">
-          <span>Team Sync Meeting</span>
-          <button>View</button>
-        </div>
+        {recentMeetings.length === 0 ? (
+          <p>No meetings yet</p>
+        ) : (
+          recentMeetings.map((meeting) => (
+            <div className="meeting" key={meeting.meeting_id}>
+              <span>{meeting.title}</span>
+              <button
+                onClick={() =>
+                  navigate("/summary", { state: { meeting_id: meeting.meeting_id } })
+                }
+              >
+                View
+              </button>
+            </div>
+          ))
+        )}
 
-        <div className="meeting">
-          <span>Client Discussion</span>
-          <button>View</button>
-        </div>
-
-        <div className="meeting">
-          <span>Project Planning</span>
-          <button>View</button>
-        </div>
       </div>
 
     </div>
