@@ -1,4 +1,3 @@
-
 import "../styles/SummaryPage.css";
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -11,18 +10,17 @@ function SummaryPage() {
   const data = location.state;
 
   //DATA ITEMS
-const keyPoints = data?.key_points || [];
-const actions = data?.action_items || [];
-const decisions = data?.decisions || [];
-const insight = data?.insight || "";
-const timeTaken = data?.processing_time || null;
+  const keyPoints = data?.key_points || [];
+  const actions = data?.action_items || [];
+  const decisions = data?.decisions || [];
+  const insight = data?.insight || "";
+  const timeTaken = data?.processing_time || null;
 
   // UI STATES
   const [loading] = useState(false);
 
   return (
     <div className="summary-page">
-
       {loading && <p className="loading">Processing meeting... ⏳</p>}
 
       {/* HERO */}
@@ -36,9 +34,7 @@ const timeTaken = data?.processing_time || null;
 
       {/* TIME */}
       {timeTaken && (
-        <div className="time-box">
-          ⏱ Processed in {timeTaken} seconds
-        </div>
+        <div className="time-box">⏱ Processed in {timeTaken} seconds</div>
       )}
 
       {/* AI SUMMARY */}
@@ -56,7 +52,6 @@ const timeTaken = data?.processing_time || null;
 
       {/* GRID */}
       <div className="insight-grid">
-
         <div className="glass purple">
           <h3>Key Points</h3>
           {keyPoints.length > 0 ? (
@@ -95,19 +90,23 @@ const timeTaken = data?.processing_time || null;
             <p className="placeholder">No decisions</p>
           )}
         </div>
-
       </div>
 
       {/* SHARE BUTTON */}
       <div className="buttons">
         <button
           className="primary-btn"
-          onClick={() => navigate("/share-report")}
+          onClick={() =>
+            navigate("/share-report", {
+              state: {
+                meeting_id: data?.meeting_id,
+              },
+            })
+          }
         >
           Share Notes
         </button>
       </div>
-
     </div>
   );
 }
