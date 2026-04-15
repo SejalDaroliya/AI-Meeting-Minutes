@@ -1,7 +1,9 @@
 import pickle
-
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "pipeline.pkl")
 # load trained model
-with open("pipeline.pkl", "rb") as f:
+with open(model_path, "rb") as f:
     model = pickle.load(f)
 
 
