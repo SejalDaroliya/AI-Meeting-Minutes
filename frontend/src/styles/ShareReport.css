@@ -103,6 +103,14 @@ margin-right:10px;
   animation: fadeIn 0.3s ease;
 }
 
+.status {
+  background: #16a34a;  /* success */
+}
+
+.status.error {
+  background: #dc2626;  /* error */
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -432,24 +440,6 @@ margin-right:10px;
   gap: 20px;   /* 🔥 controls spacing */
 }
 
-/*Participants btn */ 
-.participants-btn {
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-.participants-box {
-  margin-top: 20px;
-  background: white;
-  padding: 15px;
-  border-radius: 10px;
-  text-align: left;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-}
 /* PRINT PDF */
 
 @media print {

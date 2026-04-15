@@ -126,8 +126,16 @@ function ShareReport() {
 
       if (response.ok) {
         setStatus(data.message || "Email sent successfully");
+
+        setTimeout(() => {
+          setStatus("");
+        }, 3000); // disappears after 3 sec
       } else {
         setStatus(data.error || "Failed to send email");
+
+        setTimeout(() => {
+          setStatus("");
+        }, 3000);
       }
     } catch (error) {
       setStatus("Server error. Try again.");
@@ -442,12 +450,6 @@ function ShareReport() {
           ))}
         </div>
         <div className="button-row">
-          <button
-            className="participants-btn"
-            onClick={() => setShowParticipants(!showParticipants)}
-          >
-            Participants
-          </button>
           {showParticipants && (
             <div className="participants-box">
               <h3>Participants</h3>
