@@ -33,12 +33,25 @@ function Dashboard() {
 
   const [showMicModal, setShowMicModal] = useState(false);
   const [recentMeetings, setRecentMeetings] = useState([]);
+  
+    // 🔥 NEW STATES
+  const [stats, setStats] = useState({
+    meetings: 0,
+    minutes: 0,
+    actions: 0,
+    files: 0
+  });
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUsername(user.name);
+
+      // 🔥 FETCH DATA
+      fetchStats(user.user_id);
+      fetchMeetings(user.user_id);
     }
   }, []);
 
@@ -60,7 +73,11 @@ function Dashboard() {
       body: formData,
     });
 
-    return await res.json();
+    const result = await res.json(); // ✅ STORE HERE
+
+    console.log("Upload Result:", result); // 🔍 debug
+
+    return result; // ✅ return full response
   };
 
   // 🔥 HANDLE FILE UPLOAD
@@ -278,13 +295,19 @@ function Dashboard() {
               </div>
             )}
 
+            {/* 🎤 MIC */}
+            <button
+              className={`mic-btn ${isRecording ? "recording" : ""}`}
+              onClick={handleMicClick}
+            >
+              <div className="mic-icon"></div>
+            </button>
+
           </div>
 
           {/* Selected file */}
           {selectedFile && (
-            <p style={{ marginTop: "10px", color: "#555" }}>
-              📁 {selectedFile.name}
-            </p>
+            <p className="file-name">📁 {selectedFile.name}</p>
           )}
 
           {/* 🎧 Preview recording */}
@@ -302,30 +325,32 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* 🔥 DYNAMIC STATS */}
       <div className="stats-container">
+
         <div className="stat-card">
-          <h3>12</h3>
+          <h3>{stats.meetings}</h3>
           <p>Meetings Uploaded</p>
         </div>
 
         <div className="stat-card">
-          <h3>10</h3>
+          <h3>{stats.minutes}</h3>
           <p>Minutes Generated</p>
         </div>
 
         <div className="stat-card">
-          <h3>34</h3>
+          <h3>{stats.actions}</h3>
           <p>Action Items</p>
         </div>
 
         <div className="stat-card">
-          <h3>8</h3>
+          <h3>{stats.files}</h3>
           <p>Files Uploaded</p>
         </div>
+
       </div>
 
-      {/* Recent Meetings */}
+      {/* 🔥 DYNAMIC RECENT MEETINGS */}
       <div className="recent">
         <h2>Recent Meetings</h2>
 

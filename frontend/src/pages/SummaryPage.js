@@ -17,6 +17,7 @@ function SummaryPage() {
   const { showLoader, hideLoader } = useLoader();
 
   // DATA ITEMS
+  //DATA ITEMS
   const keyPoints = data?.key_points || [];
   const actions = data?.action_items || [];
   const decisions = data?.decisions || [];
@@ -31,6 +32,9 @@ function SummaryPage() {
   useEffect(() => {
     const fetchSummary = async () => {
       if (!meetingId) return;
+  return (
+    <div className="summary-page">
+      {loading && <p className="loading">Processing meeting... ⏳</p>}
 
       showLoader();
 
@@ -121,9 +125,7 @@ function SummaryPage() {
     <div className="summary-page">
       {/* TIME */}
       {timeTaken && (
-        <div className="time-box">
-          ⏱ Processed in {timeTaken} seconds
-        </div>
+        <div className="time-box">⏱ Processed in {timeTaken} seconds</div>
       )}
 
       {/* AI SUMMARY */}
@@ -157,7 +159,6 @@ function SummaryPage() {
 
       {/* GRID */}
       <div className="insight-grid">
-
         <div className="glass purple">
           <h3>Key Points</h3>
           {keyPoints.length > 0 ? (
@@ -196,14 +197,19 @@ function SummaryPage() {
             <p className="placeholder">No decisions</p>
           )}
         </div>
-
       </div>
 
       {/* SHARE BUTTON */}
       <div className="buttons">
         <button
           className="primary-btn"
-          onClick={() => navigate("/share-report")}
+          onClick={() =>
+            navigate("/share-report", {
+              state: {
+                meeting_id: data?.meeting_id,
+              },
+            })
+          }
         >
           Share Notes
         </button>
