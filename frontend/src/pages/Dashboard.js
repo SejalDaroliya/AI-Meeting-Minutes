@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import "../styles/Dashboard.css";
 import { useNavigate } from "react-router-dom";
 import Reminder from "../components/Reminder";
@@ -8,7 +8,6 @@ import LiveMicModal from "../components/LiveMicModal";
 function Dashboard() {
   const navigate = useNavigate();
   const BASE_URL = process.env.REACT_APP_API_URL;
-  console.log("base URL", BASE_URL);
 
   const [username, setUsername] = useState("User");
   const [selectedFile, setSelectedFile] = useState(null);
@@ -24,7 +23,6 @@ function Dashboard() {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
-  // 🔥 Loader
   const { showLoader, hideLoader } = useLoader();
 
   const [users, setUsers] = useState([]);
@@ -33,8 +31,9 @@ function Dashboard() {
 
   const [showMicModal, setShowMicModal] = useState(false);
   const [recentMeetings, setRecentMeetings] = useState([]);
-  
-    // 🔥 NEW STATES
+
+  // ✅ username setup
+      // 🔥 NEW STATES
   const [stats, setStats] = useState({
     meetings: 0,
     minutes: 0,
@@ -73,14 +72,10 @@ function Dashboard() {
       body: formData,
     });
 
-    const result = await res.json(); // ✅ STORE HERE
-
-    console.log("Upload Result:", result); // 🔍 debug
-
-    return result; // ✅ return full response
+    return await res.json();
   };
 
-  // 🔥 HANDLE FILE UPLOAD
+  // 🔥 FILE UPLOAD
   const handleGenerate = async () => {
     if (!selectedFile) {
       alert("Please upload a meeting first");
@@ -105,7 +100,7 @@ function Dashboard() {
     hideLoader();
   };
 
-  // 🔥 HANDLE RECORDING UPLOAD
+  // 🔥 RECORDING UPLOAD
   const handleRecordingUpload = async () => {
     if (!audioBlob) {
       alert("No recording found");
@@ -152,29 +147,26 @@ function Dashboard() {
     setRecording(true);
   };
 
-  // ⏹ STOP RECORDING
+  // ⏹ STOP
   const stopRecording = () => {
     mediaRecorderRef.current.stop();
     setRecording(false);
   };
-  const fetchUsers = async () => {
+
+  // 👥 FETCH USERS
+  const fetchUsers = useCallback(async () => {
     try {
       const res = await fetch(`${BASE_URL}/users`);
-
-      if (!res.ok) throw new Error("Failed to fetch users");
-
       const data = await res.json();
-
       setUsers(data.users || []);
     } catch (err) {
-      console.log("Error fetching users:", err.message);
+      console.log(err);
     }
-  };
+  }, [BASE_URL]);
+
   useEffect(() => {
-    if (showUsersPanel) {
-      fetchUsers();
-    }
-  }, [showUsersPanel]);
+    if (showUsersPanel) fetchUsers();
+  }, [showUsersPanel, fetchUsers]);
 
   const toggleUser = (id) => {
     setSelectedUsers((prev) =>
@@ -183,29 +175,60 @@ function Dashboard() {
         : [...prev, id]
     );
   };
+  const fetchStats = async (userId) => {
+  try {
+    const res = await fetch(`${BASE_URL}/user-stats/${userId}`);
+    const data = await res.json();
 
-  const fetchRecentMeetings = async () => {
+    setStats({
+      meetings: data.meetings || 0,
+      minutes: data.minutes || 0,
+      actions: data.actions || 0,
+      files: data.files || 0,
+    });
+  } catch (err) {
+    console.log("Stats error:", err);
+  }
+};
+
+const fetchMeetings = async (userId) => {
+  try {
+    const res = await fetch(`${BASE_URL}/recent-meetings/${userId}`);
+    const data = await res.json();
+    setRecentMeetings(data.meetings || []);
+  } catch (err) {
+    console.log("Meetings error:", err);
+  }
+};
+
+  // 📊 FETCH RECENT MEETINGS
+  const fetchRecentMeetings = useCallback(async () => {
     try {
       const res = await fetch(
         `${BASE_URL}/recent-meetings/${storedUser.user_id}`
       );
-
       const data = await res.json();
       setRecentMeetings(data.meetings || []);
     } catch (err) {
-      console.log("Error fetching meetings:", err.message);
+      console.log(err);
     }
-  };
+  }, [BASE_URL, storedUser?.user_id]);
+
   useEffect(() => {
     if (storedUser?.user_id) {
       fetchRecentMeetings();
     }
-  }, []);
+  }, [storedUser?.user_id, fetchRecentMeetings]);
+
+  // 🎤 MIC CLICK
+  const handleMicClick = () => {
+    setShowMicModal(true);
+  };
 
   return (
     <div className="dashboard">
 
-      {/* Hero */}
+      {/* HERO */}
       <div className="hero">
         <div className="hero-text">
           <h1>Welcome, {username} 👋</h1>
@@ -224,37 +247,25 @@ function Dashboard() {
             className="input"
           />
 
-          {/* BUTTONS */}
           <div className="hero-buttons">
 
-            {/* 📁 Upload */}
             <label className="secondary-btn">
               Upload Meeting
               <input
                 type="file"
-                accept="audio/*"
                 hidden
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) setSelectedFile(file);
-                }}
+                onChange={(e) => setSelectedFile(e.target.files[0])}
               />
             </label>
 
-            <button
-              className="secondary-btn"
-              onClick={() => setShowMicModal(true)}
-            >
+            <button onClick={handleMicClick} className="secondary-btn">
               🎤 Live Mic
             </button>
 
-            {/* 🚀 Generate from Upload */}
-            <button
-              className="primary-btn"
-              onClick={handleGenerate}
-            >
+            <button onClick={handleGenerate} className="primary-btn">
               Generate Summary
             </button>
+
             <button
               className="secondary-btn"
               onClick={() => setShowUsersPanel(!showUsersPanel)}
@@ -294,14 +305,6 @@ function Dashboard() {
 
               </div>
             )}
-
-            {/* 🎤 MIC */}
-            <button
-              className={`mic-btn ${isRecording ? "recording" : ""}`}
-              onClick={handleMicClick}
-            >
-              <div className="mic-icon"></div>
-            </button>
 
           </div>
 
@@ -355,38 +358,30 @@ function Dashboard() {
         <h2>Recent Meetings</h2>
 
         {recentMeetings.length === 0 ? (
-          <p>No recent meetings</p>
-        ) : (
-          recentMeetings.map((meeting) => (
-            <div key={meeting.meeting_id} className="meeting">
-              <span>
-                {meeting.title} <br />
-                <small style={{ color: "#666" }}>
-                  {new Date(meeting.date).toLocaleString()}
-                </small>
-              </span>
+  <p>No recent meetings</p>
+) : (
+  recentMeetings.map((meeting) => (
+    <div key={meeting.meeting_id} className="meeting">
+      <span>
+        {meeting.title} <br />
+        <small style={{ color: "#666" }}>
+          {new Date(meeting.date).toLocaleString()}
+        </small>
+      </span>
 
-              <button
-                onClick={() =>
-                  navigate("/summary", { state: { meeting_id: meeting.meeting_id } })
-                }
-              >
-                View
-              </button>
-            </div>
-          ))
-        )}
+      <button
+        onClick={() =>
+          navigate("/summary", { state: { meeting_id: meeting.meeting_id } })
+        }
+      >
+        View
+      </button>
+    </div>
+  ))
+)}
       </div>
 
-      {/* Reminder Modal */}
-      {showReminder && (
-        <Reminder
-          meetingId={null}
-          userId={storedUser?.user_id}
-          onClose={() => setShowReminder(false)}
-        />
-      )}
-
+      {/* MODALS */}
       {showMicModal && (
         <LiveMicModal
           recording={recording}
@@ -395,6 +390,14 @@ function Dashboard() {
           handleRecordingUpload={handleRecordingUpload}
           audioBlob={audioBlob}
           onClose={() => setShowMicModal(false)}
+        />
+      )}
+
+      {showReminder && (
+        <Reminder
+          meetingId={null}
+          userId={storedUser?.user_id}
+          onClose={() => setShowReminder(false)}
         />
       )}
     </div>
