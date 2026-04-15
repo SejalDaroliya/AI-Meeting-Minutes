@@ -4,20 +4,17 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Reminder from "../components/Reminder";
 import { useLoader } from "../context/LoaderContext";
 
-
 function SummaryPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const BASE_URL = process.env.REACT_APP_API_URL;
   const meetingId = location.state?.meeting_id;
 
-  // 🔥 DATA FROM DASHBOARD
   const [data, setData] = useState(location.state || null);
+  const [loading, setLoading] = useState(false);
 
   const { showLoader, hideLoader } = useLoader();
 
-  // DATA ITEMS
-  //DATA ITEMS
   const keyPoints = data?.key_points || [];
   const actions = data?.action_items || [];
   const decisions = data?.decisions || [];
@@ -29,43 +26,42 @@ function SummaryPage() {
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
 
+  // ✅ FIXED useEffect
   useEffect(() => {
-    const fetchSummary = async () => {
-      if (!meetingId) return;
-  return (
-    <div className="summary-page">
-      {loading && <p className="loading">Processing meeting... ⏳</p>}
+  const fetchSummary = async () => {
+    if (!meetingId) return;
 
-      showLoader();
+    setLoading(true);
+    showLoader();
 
-      try {
-        const res = await fetch(
-          `${BASE_URL}/meeting-summary/${meetingId}`
-        );
+    try {
+      const res = await fetch(
+        `${BASE_URL}/meeting-summary/${meetingId}`
+      );
 
-        const result = await res.json();
+      const result = await res.json();
 
-        if (!res.ok) {
-          throw new Error(result.error || "Failed to fetch summary");
-        }
-
-        setData(result);
-      } catch (err) {
-        console.error(err);
-        alert("Error loading summary");
+      if (!res.ok) {
+        throw new Error(result.error || "Failed to fetch summary");
       }
 
-      hideLoader();
-    };
-
-    // Only fetch if no full data (means came from "View")
-    if (!location.state?.transcript && meetingId) {
-      fetchSummary();
+      setData(result);
+    } catch (err) {
+      console.error(err);
+      alert("Error loading summary");
     }
-  }, [meetingId]);
 
+    hideLoader();
+    setLoading(false);
+  };
 
-  // 🔊 READ ALOUD FUNCTION
+  // ✅ ONLY depend on primitive values
+  if (!location.state?.transcript && meetingId) {
+    fetchSummary();
+  }
+}, [meetingId, BASE_URL]); // ✅ FIXED
+
+  // 🔊 READ ALOUD
   const speakText = () => {
     if (!data) return;
 
@@ -78,7 +74,6 @@ function SummaryPage() {
 
     const speech = new SpeechSynthesisUtterance(text);
 
-    // ✅ Better voice settings
     speech.rate = 1;
     speech.pitch = 1;
     speech.volume = 1;
@@ -94,38 +89,23 @@ function SummaryPage() {
     setIsSpeaking(false);
   };
 
-  // 🔥 Stop speech when leaving page
+  // cleanup
   useEffect(() => {
     return () => {
       window.speechSynthesis.cancel();
     };
   }, []);
 
-  useEffect(() => {
-  const fetchSummary = async () => {
-    try {
-      const res = await fetch(
-        `${BASE_URL}/meeting-summary/${meetingId}`
-      );
-
-      const data = await res.json();
-
-      setData(data); // your state
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  if (meetingId) {
-    fetchSummary();
-  }
-}, [meetingId]);
-
   return (
     <div className="summary-page">
+
+      {/* {<p className="loading">Processing meeting... ⏳</p>} */}
+
       {/* TIME */}
       {timeTaken && (
-        <div className="time-box">⏱ Processed in {timeTaken} seconds</div>
+        <div className="time-box">
+          ⏱ Processed in {timeTaken} seconds
+        </div>
       )}
 
       {/* AI SUMMARY */}
@@ -159,6 +139,7 @@ function SummaryPage() {
 
       {/* GRID */}
       <div className="insight-grid">
+
         <div className="glass purple">
           <h3>Key Points</h3>
           {keyPoints.length > 0 ? (
@@ -197,6 +178,7 @@ function SummaryPage() {
             <p className="placeholder">No decisions</p>
           )}
         </div>
+
       </div>
 
       {/* SHARE BUTTON */}
@@ -215,7 +197,7 @@ function SummaryPage() {
         </button>
       </div>
 
-      {/* Reminder Modal */}
+      {/* Reminder */}
       {showReminder && (
         <Reminder
           meetingId={data?.meeting_id}
@@ -223,6 +205,7 @@ function SummaryPage() {
           onClose={() => setShowReminder(false)}
         />
       )}
+
     </div>
   );
 }

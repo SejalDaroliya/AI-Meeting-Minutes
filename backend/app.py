@@ -180,6 +180,7 @@ def process_audio():
         chunks = split_audio(audio_path)
         transcript = parallel_transcribe(chunks)
         data = generate_meeting_data(transcript)
+        processing_time = round(time.time() - start_time, 2)
 
         conn = get_db_connection()
         cur = conn.cursor()
