@@ -38,7 +38,7 @@ CORS(app, supports_credentials=True, resources={
     r"/*": {
         "origins": [
             "http://localhost:3000",
-            "https://ai-meeting-minutes-delta.vercel.app/"
+             "https://ai-meeting-minutes-delta.vercel.app"
         ]
     }
 })
