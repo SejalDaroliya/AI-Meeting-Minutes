@@ -17,7 +17,7 @@ function ReminderModal({ isOpen, onClose }) {
         .then(res => res.json())
         .then(data => setUsers(data.users || []));
     }
-  }, [isOpen]);
+  }, [isOpen, BASE_URL]);
 
   const toggleUser = (id) => {
     setSelectedUsers((prev) =>

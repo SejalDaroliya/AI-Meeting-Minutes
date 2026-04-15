@@ -41,18 +41,7 @@ function Dashboard() {
     files: 0
   });
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setUsername(user.name);
-
-      // 🔥 FETCH DATA
-      fetchStats(user.user_id);
-      fetchMeetings(user.user_id);
-    }
-  }, []);
+  
 
 
   // 🔥 COMMON UPLOAD FUNCTION
@@ -175,7 +164,7 @@ function Dashboard() {
         : [...prev, id]
     );
   };
-  const fetchStats = async (userId) => {
+const fetchStats = useCallback(async (userId) => {
   try {
     const res = await fetch(`${BASE_URL}/user-stats/${userId}`);
     const data = await res.json();
@@ -189,9 +178,9 @@ function Dashboard() {
   } catch (err) {
     console.log("Stats error:", err);
   }
-};
+}, [BASE_URL]);
 
-const fetchMeetings = async (userId) => {
+const fetchMeetings = useCallback(async (userId) => {
   try {
     const res = await fetch(`${BASE_URL}/recent-meetings/${userId}`);
     const data = await res.json();
@@ -199,7 +188,19 @@ const fetchMeetings = async (userId) => {
   } catch (err) {
     console.log("Meetings error:", err);
   }
-};
+}, [BASE_URL]);
+
+useEffect(() => {
+  const stored = localStorage.getItem("user");
+
+  if (stored) {
+    const user = JSON.parse(stored);
+    setUsername(user.name);
+
+    fetchStats(user.user_id);
+    fetchMeetings(user.user_id);
+  }
+}, [fetchStats, fetchMeetings]);
 
   // 📊 FETCH RECENT MEETINGS
   const fetchRecentMeetings = useCallback(async () => {
