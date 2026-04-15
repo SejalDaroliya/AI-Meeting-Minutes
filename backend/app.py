@@ -15,9 +15,21 @@ from ai_processor import generate_meeting_data
 from dotenv import load_dotenv
 import os
 import bcrypt
+from ai_processor import get_action_items_from_model
+from ai_processor import format_action_items
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
+import json
 
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
+from datetime import datetime
+import pytz
+
+ist = pytz.timezone('Asia/Kolkata')
+utc = pytz.utc
+
+
 
 load_dotenv()
 
@@ -26,7 +38,7 @@ CORS(app, supports_credentials=True, resources={
     r"/*": {
         "origins": [
             "http://localhost:3000",
-            "https://ai-meeting-minutes-6gyshe55s-sejaldaroliyas-projects.vercel.app"
+            "https://ai-meeting-minutes-delta.vercel.app/"
         ]
     }
 })
@@ -34,6 +46,58 @@ CORS(app, supports_credentials=True, resources={
 
 os.makedirs("temp", exist_ok=True)
 
+scheduler = BackgroundScheduler()
+scheduler.start()
+
+def check_reminders():
+    print("🔁 Checking reminders...")
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT reminder_id, title, message
+        FROM meeting_reminders
+        WHERE sent = FALSE 
+        AND reminder_time <= NOW() AT TIME ZONE 'Asia/Kolkata'
+    """)
+
+    reminders = cur.fetchall()
+    print("📌 Found reminders:", reminders)
+
+    for reminder_id, title, message in reminders:
+
+        cur.execute("""
+            SELECT u.email
+            FROM reminder_recipients rr
+            JOIN users u ON u.user_id = rr.user_id
+            WHERE rr.reminder_id = %s
+        """, (reminder_id,))
+
+        emails = [row[0] for row in cur.fetchall()]
+
+        if emails:
+            html = f"""
+            <h2>{title}</h2>
+            <p>{message}</p>
+            """
+
+            success = send_email(emails, "Reminder Notification", html)
+
+            if success:
+                cur.execute("""
+                    UPDATE meeting_reminders
+                    SET sent = TRUE
+                    WHERE reminder_id = %s
+                """, (reminder_id,))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+# run every 1 minute
+scheduler.add_job(check_reminders, "interval", minutes=1)
 
 def send_email(to_emails, subject, html):
     import sib_api_v3_sdk
@@ -100,7 +164,10 @@ def process_audio():
             return jsonify({"error": "No file uploaded"}), 400
 
         file = request.files["file"]
-        filename = os.path.splitext(file.filename)[0]
+        title = request.form.get("title")
+
+        if not title:
+            title = os.path.splitext(file.filename)[0]
 
         file_id = str(uuid.uuid4())
         filepath = f"temp/{file_id}.mp3"
@@ -108,17 +175,18 @@ def process_audio():
 
         start_time = time.time()
 
-        # AI Pipeline
+        # AI pipeline
         audio_path = convert_audio(filepath)
         chunks = split_audio(audio_path)
         transcript = parallel_transcribe(chunks)
         data = generate_meeting_data(transcript)
 
-        processing_time = round(time.time() - start_time, 2)
-
         conn = get_db_connection()
         cur = conn.cursor()
 
+        creator_id = request.form.get("user_id")
+        participants = request.form.get("participants")
+        participants = json.loads(participants) if participants else []
         #user_id = request.form.get("user_id")  # coming from frontend
         user_id = request.form.get("user_id")
 
@@ -127,20 +195,27 @@ def process_audio():
 
         user_id = int(user_id)  # ✅ IMPORTANT FIX
 
-        # 1️⃣ Insert into meetings
+        # 1️⃣ INSERT MEETING FIRST
         cur.execute("""
             INSERT INTO meetings (user_id, title, meeting_date, transcript)
             VALUES (%s, %s, NOW(), %s)
             RETURNING meeting_id
         """, (
-            user_id,
-            filename,
+            creator_id,
+            title,
             transcript
         ))
 
         meeting_id = cur.fetchone()[0]
 
-        # 2️⃣ Insert into summaries
+        # 2️⃣ INSERT PARTICIPANTS (NOW SAFE)
+        for uid in participants:
+            cur.execute("""
+                INSERT INTO meeting_participants (meeting_id, user_id)
+                VALUES (%s, %s)
+            """, (meeting_id, uid))
+
+        # 3️⃣ INSERT SUMMARY
         cur.execute("""
             INSERT INTO summaries (meeting_id, summary_text, key_points, action_items)
             VALUES (%s, %s, %s, %s)
@@ -152,14 +227,31 @@ def process_audio():
         ))
 
         conn.commit()
+
+        # AI action items
+        raw_actions = get_action_items_from_model(transcript)
+        model_actions = format_action_items(raw_actions)
+
+        if not model_actions:
+            model_actions = data.get("action_items", [])
+
+        cur.execute("""
+            UPDATE summaries
+            SET action_items = %s
+            WHERE meeting_id = %s
+        """, (
+            json.dumps(model_actions),
+            meeting_id
+        ))
+
+        conn.commit()
+
         cur.close()
         conn.close()
-        try:
-            os.remove(filepath)
-            for chunk in chunks:
-                os.remove(chunk)
-        except:
-            pass
+
+        os.remove(filepath)
+        for chunk in chunks:
+            os.remove(chunk)
 
         return jsonify({
             "success": True,
@@ -168,15 +260,12 @@ def process_audio():
             "transcript": transcript,
             "insight": data.get("insight", ""),
             "key_points": data.get("key_points", []),
-            "action_items": data.get("action_items", []),
+            "action_items": model_actions,
             "decisions": data.get("decisions", [])
         })
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route("/signup", methods=["POST"])
@@ -428,6 +517,137 @@ def send_email_route_test():
 
     return {"message": "Test email sent successfully"}
 
+@app.route("/create-reminder", methods=["POST"])
+def create_reminder():
+    try:
+        data = request.json
+        print("REQUEST DATA:", data)
+        print("SELECTED USERS:", data.get("selected_users"))
+        title = data.get("title")
+        message = data.get("message")
+        reminder_time = data.get("reminder_time")
+        selected_users = data.get("selected_users", [])
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # 1. create reminder
+        cur.execute("""
+            INSERT INTO meeting_reminders (title, message, reminder_time)
+            VALUES (%s, %s, %s)
+            RETURNING reminder_id
+        """, (title, message, reminder_time))
+
+        reminder_id = cur.fetchone()[0]
+
+        # 2. insert recipients
+        for user_id in selected_users:
+            cur.execute("""
+                INSERT INTO reminder_recipients (reminder_id, user_id)
+                VALUES (%s, %s)
+            """, (reminder_id, user_id))
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({"message": "Reminder created successfully"})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/run-reminders")
+def run_reminders():
+    check_reminders()
+    return {"message": "Reminders checked"}
+
+@app.route("/users", methods=["GET"])
+def get_users():
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT user_id, name, email
+        FROM users
+        ORDER BY name
+    """)
+
+    users = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "users": [
+            {
+                "user_id": u[0],
+                "name": u[1],
+                "email": u[2]
+            }
+            for u in users
+        ]
+    })
+
+@app.route("/recent-meetings/<int:user_id>", methods=["GET"])
+def get_recent_meetings(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT meeting_id, title, meeting_date
+        FROM meetings
+        WHERE user_id = %s
+        ORDER BY meeting_date DESC
+        LIMIT 5
+    """, (user_id,))
+
+    meetings = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return jsonify({
+        "meetings": [
+            {
+                "meeting_id": m[0],
+                "title": m[1],
+                "date": m[2]
+            }
+            for m in meetings
+        ]
+    })
+    
+@app.route("/meeting-summary/<int:meeting_id>", methods=["GET"])
+def get_meeting_summary(meeting_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT m.title, m.meeting_date, m.transcript,
+               s.summary_text, s.key_points, s.action_items
+        FROM meetings m
+        JOIN summaries s ON m.meeting_id = s.meeting_id
+        WHERE m.meeting_id = %s
+    """, (meeting_id,))
+
+    result = cur.fetchone()
+
+    cur.close()
+    conn.close()
+
+    if not result:
+        return jsonify({"error": "Meeting not found"}), 404
+
+    title, date, transcript, summary, key_points, action_items = result
+
+    return jsonify({
+        "title": title,
+        "date": date,
+        "transcript": transcript,
+        "insight": summary,
+        "key_points": key_points,
+        "action_items": action_items
+    })
 
 #user stats at dashboard
 @app.route("/user-stats/<int:user_id>", methods=["GET"])
