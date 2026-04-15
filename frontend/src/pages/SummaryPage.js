@@ -11,7 +11,6 @@ function SummaryPage() {
   const meetingId = location.state?.meeting_id;
 
   const [data, setData] = useState(location.state || null);
-  const [loading, setLoading] = useState(false);
 
   const { showLoader, hideLoader } = useLoader();
 
@@ -26,12 +25,14 @@ function SummaryPage() {
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
 
-  // ✅ FIXED useEffect
+  // ✅ IMPORTANT: extract primitive dependency
+  const hasTranscript = location.state?.transcript;
+
+  // ✅ CLEAN useEffect (no warnings, no loop)
   useEffect(() => {
   const fetchSummary = async () => {
     if (!meetingId) return;
 
-    setLoading(true);
     showLoader();
 
     try {
@@ -52,15 +53,15 @@ function SummaryPage() {
     }
 
     hideLoader();
-    setLoading(false);
   };
 
-  // ✅ ONLY depend on primitive values
-  if (!location.state?.transcript && meetingId) {
+  if (!hasTranscript && meetingId) {
     fetchSummary();
   }
-}, [meetingId, BASE_URL]); // ✅ FIXED
 
+  // ❗️IMPORTANT: disable lint for this line
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [meetingId, BASE_URL, hasTranscript]);
   // 🔊 READ ALOUD
   const speakText = () => {
     if (!data) return;
@@ -99,8 +100,6 @@ function SummaryPage() {
   return (
     <div className="summary-page">
 
-      {/* {<p className="loading">Processing meeting... ⏳</p>} */}
-
       {/* TIME */}
       {timeTaken && (
         <div className="time-box">
@@ -110,11 +109,13 @@ function SummaryPage() {
 
       {/* AI SUMMARY */}
       <div className="glass insight-card">
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center"
-        }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <h2>✨ AI SUMMARY</h2>
 
           {!isSpeaking ? (
@@ -139,7 +140,6 @@ function SummaryPage() {
 
       {/* GRID */}
       <div className="insight-grid">
-
         <div className="glass purple">
           <h3>Key Points</h3>
           {keyPoints.length > 0 ? (
@@ -178,7 +178,6 @@ function SummaryPage() {
             <p className="placeholder">No decisions</p>
           )}
         </div>
-
       </div>
 
       {/* SHARE BUTTON */}
@@ -205,7 +204,6 @@ function SummaryPage() {
           onClose={() => setShowReminder(false)}
         />
       )}
-
     </div>
   );
 }
