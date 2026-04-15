@@ -210,3 +210,95 @@ width:100%;
 }
 
 }
+
+/* ================= TABLET ================= */
+
+@media (max-width: 1024px) {
+
+  .report-card {
+    width: 90%;
+    padding: 30px;
+  }
+
+  .dropdown-container {
+    width: 100%;
+  }
+}
+
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+
+  .title {
+    font-size: 28px;
+  }
+
+  .report-card {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .section h3 {
+    font-size: 16px;
+  }
+
+  .section ul {
+    padding-left: 15px;
+  }
+
+  /* EMAIL INPUT STACK */
+  .email-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .email-box input {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .send-btn {
+    width: 100%;
+  }
+
+  /* DROPDOWN FIX */
+  .dropdown-container {
+    width: 100%;
+  }
+
+  .dropdown-menu {
+    max-height: 200px;
+  }
+
+  /* TAGS WRAP CLEANLY */
+  .selected-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+
+/* ================= SMALL PHONES ================= */
+
+@media (max-width: 480px) {
+
+  .title {
+    font-size: 24px;
+  }
+
+  .report-card {
+    padding: 15px;
+  }
+
+  .pdf-btn {
+    width: 100%;
+  }
+
+  .dropdown-btn {
+    font-size: 14px;
+  }
+}

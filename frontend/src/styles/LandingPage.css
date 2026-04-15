@@ -2,9 +2,8 @@ body{
   margin:0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background:#faf7ff;
+  overflow-x:hidden;
 }
-
-
 
 /* NAVBAR */
 
@@ -15,12 +14,20 @@ body{
   padding:20px 60px;
   background:rgba(255,255,255,0.6);
   backdrop-filter:blur(10px);
+  flex-wrap: wrap; /* ✅ */
+  gap:10px;
 }
 
 .logo{
   font-size:20px;
   font-weight:600;
   color:#6d28d9;
+}
+
+.nav-links{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
 }
 
 .nav-links a{
@@ -39,8 +46,6 @@ body{
   cursor:pointer;
 }
 
-
-
 /* HERO */
 
 .meethero{
@@ -54,6 +59,8 @@ body{
   align-items:center;
   max-width:1100px;
   margin:auto;
+  gap:40px;
+  flex-wrap: wrap; /* ✅ */
 }
 
 .meethero-text{
@@ -86,15 +93,13 @@ body{
   cursor:pointer;
 }
 
-
-
 /* AI Illustration */
 
 .hero-illustration{
   animation:float 4s ease-in-out infinite;
+  max-width:300px;
+  width:100%;
 }
-
-
 
 /* FEATURES */
 
@@ -116,9 +121,7 @@ body{
   padding:0 100px;
 }
 
-
-
-/* GLASSMORPHISM CARD */
+/* CARDS */
 
 .feature-card{
   background:rgba(255,255,255,0.55);
@@ -140,8 +143,6 @@ body{
   margin-bottom:10px;
 }
 
-
-
 /* FOOTER */
 
 .footer{
@@ -156,37 +157,90 @@ body{
   margin-top:20px;
 }
 
-
-
 /* ANIMATIONS */
 
 @keyframes fadeUp{
-
   from{
     opacity:0;
     transform:translateY(30px);
   }
-
   to{
     opacity:1;
     transform:translateY(0);
   }
-
 }
 
-
 @keyframes float{
+  0%{transform:translateY(0px);}
+  50%{transform:translateY(-12px);}
+  100%{transform:translateY(0px);}
+}
 
-  0%{
-    transform:translateY(0px);
+/* ================= RESPONSIVE ================= */
+
+/* 📱 Tablets */
+@media (max-width:1024px){
+
+  .navbar{
+    padding:20px;
   }
 
-  50%{
-    transform:translateY(-12px);
+  .meethero{
+    padding:80px 40px;
   }
 
-  100%{
-    transform:translateY(0px);
+  .feature-grid{
+    padding:0 40px;
+  }
+}
+
+/* 📱 Mobile */
+@media (max-width:768px){
+
+  .navbar{
+    flex-direction:column;
+    align-items:flex-start;
   }
 
+  .nav-links{
+    width:100%;
+    justify-content:flex-start;
+  }
+
+  .meethero{
+    padding:60px 20px;
+  }
+
+  .meethero-content{
+    flex-direction:column;
+    text-align:center;
+  }
+
+  .meethero h1{
+    font-size:34px;
+  }
+
+  .meethero p{
+    font-size:16px;
+  }
+
+  .feature-grid{
+    padding:0 20px;
+  }
+}
+
+/* 📱 Small Mobile */
+@media (max-width:480px){
+
+  .meethero h1{
+    font-size:28px;
+  }
+
+  .meethero-btn{
+    width:100%;
+  }
+
+  .start-btn{
+    width:100%;
+  }
 }

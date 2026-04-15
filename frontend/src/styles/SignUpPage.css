@@ -32,7 +32,8 @@
 /* RIGHT PANEL */
 
 .signup-right {
-  width: 500px;
+  width: 100%;
+  max-width: 500px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -106,4 +107,68 @@
 
 .signup-card:hover {
   transform: translateY(-5px);
+}
+
+/* ================= TABLET ================= */
+
+@media (max-width: 1024px) {
+
+  .signup-right {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .signup-left {
+    padding: 30px;
+  }
+}
+
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+
+  .signup-container {
+    flex-direction: column;
+  }
+
+  /* ❌ Hide left panel on small screens */
+  .signup-left {
+    display: none;
+  }
+
+  .signup-right {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .signup-card {
+    padding: 25px;
+  }
+
+  .signup-card h2 {
+    font-size: 22px;
+  }
+
+  .signup-form input {
+    padding: 10px;
+  }
+
+  .signup-form button {
+    width: 100%;
+  }
+}
+
+
+/* ================= SMALL PHONES ================= */
+
+@media (max-width: 480px) {
+
+  .signup-card {
+    padding: 20px;
+  }
+
+  .signup-card h2 {
+    font-size: 20px;
+  }
 }
