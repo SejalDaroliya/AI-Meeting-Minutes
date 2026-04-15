@@ -22,7 +22,7 @@ function ShareReport() {
   const [others, setOthers] = useState([]);
   const [selectedEmails, setSelectedEmails] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [report, setReport] = useState(null);
+ // const [report, setReport] = useState(null);
   const BASE_URL = process.env.REACT_APP_API_URL;
 
   const location = useLocation();
@@ -55,23 +55,13 @@ function ShareReport() {
     }
   }, [BASE_URL, meetingId]);
 
-  useEffect(() => {
-    if (meetingId) {
-      fetchRecipients();
-      fetchReport();
-    }
-  }, [meetingId]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
     if (!meetingId) return;
 
     try {
       const res = await fetch(`${BASE_URL}/get-meeting/${meetingId}`);
       const data = await res.json();
 
-      setReport(data);
-
-      // report edit
       setEditableReport({
         title: data.title || "",
         summary: data.summary || "",
@@ -81,7 +71,16 @@ function ShareReport() {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [BASE_URL, meetingId]);
+
+  useEffect(() => {
+    if (meetingId) {
+      fetchRecipients();
+      fetchReport();
+    }
+  }, [meetingId, fetchRecipients, fetchReport]);
+
+   
 
   useEffect(() => {
     const handleClickOutside = (event) => {

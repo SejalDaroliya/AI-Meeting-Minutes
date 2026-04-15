@@ -349,72 +349,29 @@ margin-right:10px;
   border: 1px solid #eee;
 }
 
-.summary-container ul {
-  margin: 0;
-  padding-left: 20px;
+
+/* ================= TABLET ================= */
+
+@media (max-width: 1024px) {
+
+  .report-card {
+    width: 90%;
+    padding: 30px;
+  }
+
+  .dropdown-container {
+    width: 100%;
+  }
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 
-/* edit icon button */
-.edit-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  opacity: 0.6;
-  transition: 0.2s;
-}
+/* ================= MOBILE ================= */
 
-.edit-btn:hover {
-  opacity: 1;
-  transform: scale(1.1);
-}
+@media (max-width: 768px) {
 
-/* normal text view */
-.summary-text {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #374151;
-}
-
-/* header alignment */
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* edit button */
-.edit-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  color: #6d28d9;
-  font-weight: 500;
-}
-
-/* action buttons */
-.edit-actions {
-  margin-top: 10px;
-  display: flex;
-  gap: 10px;
-}
-
-/* save */
-.save-btn {
-  background: #7c3aed;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
+  .title {
+    font-size: 28px;
+  }
 
 /* cancel */
 .cancel-btn {
@@ -440,33 +397,35 @@ margin-right:10px;
   gap: 20px;   /* 🔥 controls spacing */
 }
 
-/* PRINT PDF */
-
-@media print {
-
-  body * {
-    visibility: hidden;
+  .section h3 {
+    font-size: 16px;
   }
 
-  #report, #report * {
-    visibility: visible;
+  .section ul {
+    padding-left: 15px;
+  }
+
+  /* EMAIL INPUT STACK */
+  .email-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .email-box input {
+    width: 100%;
+    margin-right: 0;
   }
 
   #report {
     position: static;
     width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 20px;
-    box-sizing: border-box;
   }
 
-  .report-card {
+  /* DROPDOWN FIX */
+  .dropdown-container {
     width: 100%;
-    max-width: 100%;
-    box-shadow: none;
-    border-radius: 0;
-    padding: 20px;
   }
 
   .print-header {
