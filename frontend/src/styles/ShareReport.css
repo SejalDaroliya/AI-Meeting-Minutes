@@ -86,9 +86,34 @@ margin-right:10px;
   transform: scale(0.95);
 }
 
-.status{
-margin-top:10px;
-font-weight:500;
+.status {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #16a34a;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.status {
+  animation: fadeIn 0.3s ease;
+}
+
+.status {
+  background: #16a34a;  /* success */
+}
+
+.status.error {
+  background: #dc2626;  /* error */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .selected-tags {
@@ -131,9 +156,28 @@ font-weight:500;
 }
 
 .send-btn:hover,
-.dropdown-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+.dropdown-btn:hover,
+.pdf-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+}
+
+.send-btn,
+.dropdown-btn,
+.pdf-btn {
+  transition: all 0.25s ease;
+}
+
+.send-btn:active,
+.dropdown-btn:active,
+.pdf-btn:active {
+  transform: scale(0.95);
+}
+
+.send-btn,
+.dropdown-btn,
+.pdf-btn {
+  cursor: pointer;
 }
 
 .dropdown-btn,
@@ -141,6 +185,22 @@ font-weight:500;
   min-width: 180px;
 }
 
+.pdf-btn,
+.dropdown-btn {
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.pdf-btn:hover,
+.dropdown-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+}
+
+.pdf-btn:active,
+.dropdown-btn:active {
+  transform: scale(0.95);
+}
 .button-row {
   display: flex;
   justify-content: center;
@@ -289,72 +349,29 @@ font-weight:500;
   border: 1px solid #eee;
 }
 
-.summary-container ul {
-  margin: 0;
-  padding-left: 20px;
+
+/* ================= TABLET ================= */
+
+@media (max-width: 1024px) {
+
+  .report-card {
+    width: 90%;
+    padding: 30px;
+  }
+
+  .dropdown-container {
+    width: 100%;
+  }
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 
-/* edit icon button */
-.edit-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  opacity: 0.6;
-  transition: 0.2s;
-}
+/* ================= MOBILE ================= */
 
-.edit-btn:hover {
-  opacity: 1;
-  transform: scale(1.1);
-}
+@media (max-width: 768px) {
 
-/* normal text view */
-.summary-text {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #374151;
-}
-
-/* header alignment */
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* edit button */
-.edit-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  color: #6d28d9;
-  font-weight: 500;
-}
-
-/* action buttons */
-.edit-actions {
-  margin-top: 10px;
-  display: flex;
-  gap: 10px;
-}
-
-/* save */
-.save-btn {
-  background: #7c3aed;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
+  .title {
+    font-size: 28px;
+  }
 
 /* cancel */
 .cancel-btn {
@@ -364,46 +381,77 @@ font-weight:500;
   border-radius: 6px;
   cursor: pointer;
 }
+.print-header,
+.print-footer {
+  display: none;
+}
 
-/* PRINT PDF */
+.print-header,
+.print-footer {
+  display: none;
+}
 
-@media print {
+.meta {
+  display: flex;
+  justify-content: center;
+  gap: 20px;   /* 🔥 controls spacing */
+}
 
-  body * {
-    visibility: hidden;
+  .section h3 {
+    font-size: 16px;
   }
 
-  #report, #report * {
-    visibility: visible;
+  .section ul {
+    padding-left: 15px;
+  }
+
+  /* EMAIL INPUT STACK */
+  .email-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .email-box input {
+    width: 100%;
+    margin-right: 0;
   }
 
   #report {
-    position: static;           /* ✅ FIX */
+    position: static;
     width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 20px;
-    box-sizing: border-box;
   }
 
-  .report-card {
+  /* DROPDOWN FIX */
+  .dropdown-container {
     width: 100%;
-    max-width: 100%;
-    box-shadow: none;
-    border-radius: 0;
-    padding: 20px;
   }
 
-  @media print {
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .print-footer {
+    display: block !important;
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: #777;
+  }
+
   @page {
     size: A4;
     margin: 15mm;
   }
-}
-@media print {
+
   .share-page {
     padding: 0;
     background: white;
   }
-}
 }

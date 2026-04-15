@@ -737,3 +737,101 @@ body {
   gap: 10px;
   margin-bottom: 6px;
 } */
+
+
+/* ================= TABLET ================= */
+
+@media (max-width: 1024px) {
+
+  .summary-page {
+    padding: 20px;
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .hero-right {
+    font-size: 40px;
+    align-self: flex-end;
+  }
+
+  .insight-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+
+  .hero {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .hero-left h1 {
+    font-size: 26px;
+  }
+
+  .hero-left p {
+    font-size: 14px;
+  }
+
+  .hero-right {
+    font-size: 36px;
+    margin-top: 10px;
+  }
+
+  .time-box {
+    text-align: center;
+  }
+
+  /* GRID → SINGLE COLUMN */
+  .insight-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .glass {
+    padding: 15px;
+  }
+
+  .insight-card h2 {
+    font-size: 18px;
+  }
+
+  .buttons {
+    margin-top: 20px;
+  }
+
+  .primary-btn {
+    width: 100%;
+  }
+}
+
+
+/* ================= SMALL PHONES ================= */
+
+@media (max-width: 480px) {
+
+  .summary-page {
+    padding: 15px;
+  }
+
+  .hero-left h1 {
+    font-size: 22px;
+  }
+
+  .hero-right {
+    font-size: 30px;
+  }
+
+  .glass {
+    padding: 12px;
+  }
+}

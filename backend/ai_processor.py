@@ -1,112 +1,11 @@
 
-
-
-
-
-
-
-# for action-item
-# from groq import Groq
-# from dotenv import load_dotenv
-# import os
-# import json
-# import re
-
-# from ml_model import is_action_item, predict_priority
-
-# load_dotenv()
-
-# client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
-
-# def generate_meeting_data(transcript):
-
-#     transcript = transcript[:6000]
-
-#     prompt = f"""
-# Return ONLY valid JSON.
-
-# Format:
-# {{
-# "insight":"short meeting insight summary",
-# "key_points":["point1","point2","point3"],
-# "action_items":["task1","task2"],
-# "decisions":["decision1"]
-# }}
-
-# Transcript:
-# {transcript}
-# """
-
-#     response = client.chat.completions.create(
-#         model="llama-3.1-8b-instant",
-#         messages=[{"role": "user", "content": prompt}]
-#     )
-
-#     content = response.choices[0].message.content.strip()
-
-#     print("\n===== GROQ RAW OUTPUT =====\n", content)
-
-#     # ---------- SAFE JSON PARSING ----------
-#     data = None
-
-#     try:
-#         data = json.loads(content)
-#     except:
-#         match = re.search(r"\{[\s\S]*\}", content)
-#         if match:
-#             try:
-#                 data = json.loads(match.group(0))
-#             except:
-#                 data = None
-
-#     # ---------- PROCESS ----------
-#     if data:
-
-#         original_actions = data.get("action_items", [])
-
-#         filtered_actions = []
-
-#         for item in original_actions:
-#             if is_action_item(item):
-#                 filtered_actions.append({
-#                     "task": item,
-#                     "priority": predict_priority(item)
-#                 })
-
-#         # 🔥 IMPORTANT FIX: fallback if empty
-#         if len(filtered_actions) == 0:
-#             filtered_actions = [
-#                 {
-#                     "task": item,
-#                     "priority": "LOW"
-#                 }
-#                 for item in original_actions
-#             ]
-
-#         data["action_items"] = filtered_actions
-
-#         return data
-
-#     # ---------- FALLBACK ----------
-#     return {
-#         "insight": "Could not generate insight",
-#         "key_points": [],
-#         "action_items": [],
-#         "decisions": []
-#     }
-
-
-
-
-
 # new orgg variant -detailed summary
 from groq import Groq
 from dotenv import load_dotenv
 import os
 import json
 import re
-
+from model_loader import is_action_item
 load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -170,59 +69,104 @@ Transcript:
         "decisions": []
     }
 
+def split_sentences(text):
+    sentences = re.split(r'[.!?…]+', text)
+    return [s.strip() for s in sentences if s.strip()]
 
 
+# ✅ Step 1: Use YOUR MODEL
+def filter_with_model(transcript):
+    sentences = split_sentences(transcript)
+
+    action_items = []
+    for s in sentences:
+        if is_action_item(s):
+            action_items.append(s)
+
+    return action_items
 
 
+# ✅ Step 2: Use Groq ONLY for cleaning
+def clean_with_groq(transcript, items):
+    prompt = f"""
+    Clean and refine the action items.
 
-# orggg
-# from groq import Groq
-# from dotenv import load_dotenv
-# import os
-# import json
-# import re
+    Transcript:
+    {transcript}
 
-# load_dotenv()
+    Action Items:
+    {items}
 
-# client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+    Rules:
+    - Convert into clear, professional action items
+    - Remove duplicates
+    - Keep concise
+    - Output ONLY in this format:
 
-# def generate_meeting_data(transcript):
+      Action Items:
+      - item 1
+      - item 2
 
-#     transcript = transcript[:6000]
+    - Do NOT add explanations
+    - Use "-" only
+    """
 
-#     prompt = f"""
-# Return ONLY valid JSON.
+    response = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[{"role": "user", "content": prompt}]
+    )
 
-# Format:
-# {{
-# "insight":"short meeting insight summary",
-# "key_points":["point1","point2","point3"],
-# "action_items":["task1","task2"],
-# "decisions":["decision1"]
-# }}
+    return response.choices[0].message.content
 
-# Transcript:
-# {transcript}
-# """
 
-#     response = client.chat.completions.create(
-#         model="llama-3.1-8b-instant",
-#         messages=[{"role":"user","content":prompt}]
-#     )
+# ✅ MAIN FUNCTION
+def get_action_items_from_model(transcript):
+    raw_items = filter_with_model(transcript)
 
-#     content = response.choices[0].message.content.strip()
+    # print("\n🔹 Items from Model:")
+    # print(raw_items)
 
-#     # extract JSON block safely
-#     match = re.search(r"\{.*\}", content, re.DOTALL)
+    if not raw_items:
+        raw_items = ["Review discussion and identify key tasks"]
 
-#     if match:
-#         json_text = match.group(0)
-#         return json.loads(json_text)
+    # Groq cleaning
+    final_output = clean_with_groq(transcript, raw_items)
 
-#     # fallback if model fails
-#     return {
-#         "insight": "Could not generate insight",
-#         "key_points": [],
-#         "action_items": [],
-#         "decisions": []
-#     }
+    # 🔥 LIMIT BASED ON LENGTH
+    word_count = len(transcript.split())
+
+    if word_count < 80:
+        limit = 3
+    elif word_count < 200:
+        limit = 5
+    else:
+        limit = 7
+
+    # extract items from text
+    lines = final_output.split("\n")
+    items = [line for line in lines if line.startswith("-")]
+
+    limited_items = items[:limit]
+
+    # rebuild output
+    output = "Action Items:\n" + "\n".join(limited_items)
+
+    return output
+
+def format_action_items(raw_text):
+    if isinstance(raw_text, list):
+        return raw_text  # already correct
+
+    if not raw_text:
+        return []
+
+    # remove heading
+    raw_text = raw_text.replace("Action Items:", "")
+
+    # split using "-"
+    items = re.split(r"-\s*", raw_text)
+
+    # clean items
+    cleaned = [item.strip() for item in items if item.strip()]
+
+    return cleaned
