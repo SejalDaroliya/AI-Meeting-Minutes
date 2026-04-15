@@ -1,3 +1,5 @@
+/* ================= BASE ================= */
+
 .share-page {
   background: linear-gradient(135deg, #f5f3ff, #ede9fe);
   min-height: 100vh;
@@ -12,19 +14,15 @@
   color: #3b2f80;
 }
 
+/* ================= CARD ================= */
+
 .report-card {
-  width: 100%;
-  max-width: 700px;
-  margin: auto;
+  width: 700px;
+  margin: 40px auto;
   padding: 40px;
   border-radius: 14px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   text-align: left;
-}
-
-.report-card h2 {
-  margin-bottom: 20px;
-  color: #5b21b6;
 }
 
 .section {
@@ -36,52 +34,34 @@
   color: #6d28d9;
 }
 
-.section ul {
-  padding-left: 20px;
-}
+/* ================= BUTTONS ================= */
 
-.pdf-btn {
-  margin-top: 25px;
-  padding: 12px 25px;
+.pdf-btn,
+.send-btn,
+.dropdown-btn {
+  padding: 12px 20px;
   background: linear-gradient(135deg, #7c3aed, #5b21b6);
   border: none;
   color: white;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  transition: all 0.25s ease;
 }
 
-.email-box {
-  text-align: center;
-  margin-top: 50px;
+.pdf-btn:hover,
+.send-btn:hover,
+.dropdown-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
 }
 
-.email-box input {
-  width: 350px;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  margin-right: 10px;
-}
-
-.send-btn {
-  padding: 12px 24px;
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
-  border: none;
-  color: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.send-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(124, 58, 237, 0.4);
-}
-
-.send-btn:active {
+.pdf-btn:active,
+.send-btn:active,
+.dropdown-btn:active {
   transform: scale(0.95);
 }
+
+/* ================= STATUS ================= */
 
 .status {
   position: fixed;
@@ -93,78 +73,13 @@
   border-radius: 8px;
   font-size: 14px;
   z-index: 1000;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-  animation: fadeIn 0.3s ease;
 }
 
-.status.error {
-  background: #dc2626;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.selected-tags {
-  margin-bottom: 10px;
-}
-
-.tag {
-  display: inline-block;
-  background: #e0d4ff;
-  color: #4c1d95;
-  padding: 5px 10px;
-  margin: 4px;
-  border-radius: 20px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.tag span {
-  margin-left: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
+/* ================= DROPDOWN ================= */
 
 .dropdown-container {
   position: relative;
   display: inline-block;
-}
-
-.dropdown-btn {
-  background: linear-gradient(135deg, #7c3aed, #5b21b6);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.dropdown-btn:hover,
-.pdf-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
-}
-
-.dropdown-btn:active,
-.pdf-btn:active {
-  transform: scale(0.95);
-}
-
-.dropdown-btn,
-.send-btn {
-  min-width: 180px;
-}
-
-.button-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-top: 20px;
 }
 
 .dropdown-menu {
@@ -177,65 +92,78 @@
   background: white;
   border-radius: 14px;
   padding: 15px;
-  z-index: 999;
   box-shadow: 0 12px 30px rgba(0,0,0,0.2);
-}
-
-.search-box {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
 }
 
 .dropdown-item {
   display: flex;
-  align-items: center;
   gap: 10px;
   padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.dropdown-item input {
-  margin: 0;
-  width: 16px;
-  height: 16px;
-}
-
-.user-text {
-  flex: 1;
-  text-align: left;
-  word-break: break-word;
 }
 
 .dropdown-item:hover {
   background: #f3f0ff;
 }
 
-.dropdown-menu h4 {
-  margin: 10px 0;
-  font-size: 13px;
-  color: #6b7280;
+/* ================= TAGS ================= */
+
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.edit-box {
-  width: 100%;
-  min-height: 120px;
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  line-height: 1.8;
-  color: #374151;
-  padding: 0;
-  border: none;
+.tag {
+  background: #e9d5ff;
+  color: #4c1d95;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+.tag:hover {
+  transform: scale(1.05);
+}
+
+/* ================= EDIT ================= */
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit-btn {
   background: transparent;
-  outline: none;
+  border: none;
+  cursor: pointer;
+  color: #6d28d9;
+}
+
+.edit-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.save-btn {
+  background: #7c3aed;
+  color: white;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.cancel-btn {
+  background: #e5e7eb;
+  padding: 6px 14px;
+  border-radius: 6px;
 }
 
 .edit-input {
   width: 100%;
-  margin-bottom: 8px;
   padding: 8px;
   border-radius: 6px;
   border: 1px solid #ddd;
@@ -243,66 +171,46 @@
 
 .summary-container {
   background: #f9fafb;
-  padding: 18px 20px;
+  padding: 20px;
   border-radius: 12px;
-  border: 1px solid #eee;
 }
 
-/* ================= TABLET ================= */
-@media (max-width: 1024px) {
+/* ================= EMAIL SECTION (FIXED) ================= */
 
-  .summary-text {
-    font-size: 16px;
-    line-height: 1.8;
-    color: #374151;
-  }
+.email-box {
+  margin-top: 60px;
+  text-align: center;
+}
 
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+.button-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 10px;
+}
 
-  .edit-btn {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    color: #6d28d9;
-    font-weight: 500;
-  }
+.selected-count {
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+}
 
-  .edit-actions {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-  }
+/* ================= META ================= */
 
-  .save-btn {
-    background: #7c3aed;
-    color: white;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  .cancel-btn {
-    background: #e5e7eb;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  .meta {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-  }
+.meta {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
 }
 
 /* ================= PRINT ================= */
+
+.print-header,
+.print-footer {
+  display: none;
+}
+
 @media print {
 
   body * {
@@ -314,153 +222,49 @@
   }
 
   #report {
-    position: static;
+    width: 100%;
   }
 
   .report-card {
-    width: 90%;
-    padding: 30px;
-  }
-
-  .dropdown-container {
     width: 100%;
-  }
-}
-
-/* ================= MOBILE ================= */
-  .report-card {
-    width: 90%;
-    padding: 30px;
+    box-shadow: none;
+    border-radius: 0;
   }
 
-  .dropdown-container {
-    width: 100%;
-  }
-
-
-
-/* ================= MOBILE ================= */
-
-@media (max-width: 768px) {
-
-  .title {
-    font-size: 28px;
-  }
-
-  .report-card {
-    width: 95%;
-    padding: 20px;
-  }
-
-  .share-page {
-    padding: 0;
-    background: white;
-  }
-/* cancel */
-.cancel-btn {
-  background: #e5e7eb;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.print-header,
-.print-footer {
-  display: none;
-}
-
-.print-header,
-.print-footer {
-  display: none;
-}
-
-.meta {
-  display: flex;
-  justify-content: center;
-  gap: 20px;   /* 🔥 controls spacing */
-}
-
-  .section h3 {
-    font-size: 16px;
-  }
-
-  .section ul {
-    padding-left: 15px;
-  }
-
-  .email-box {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .email-box input {
-    width: 100%;
-    margin-right: 0;
-  }
-
-  #report {
-    position: static;
-    width: 100%;
-  }
-
-  .dropdown-container {
-    width: 100%;
-  }
-
-  .dropdown-menu {
-    max-height: 200px;
-  }
-
-  .selected-tags {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-}
-
-/* ================= SMALL PHONES ================= */
-@media (max-width: 480px) {
-
-  .title {
-    font-size: 24px;
-  }
-
-  .report-card {
-    padding: 15px;
-  }
-
-  .pdf-btn {
-    width: 100%;
-  }
-}
-  .dropdown-btn {
-    font-size: 14px;
   .print-header {
-    display: block !important;
+    display: block;
     text-align: center;
     margin-bottom: 20px;
   }
 
   .print-footer {
-    display: block !important;
-    position: fixed;
-    bottom: 10px;
-    left: 0;
-    right: 0;
+    display: block;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
     text-align: center;
-    font-size: 11px;
-    color: #777;
   }
 
   @page {
     size: A4;
     margin: 15mm;
   }
+}
 
-  .share-page {
-    padding: 0;
-    background: white;
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+
+  .report-card {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .dropdown-menu {
+    max-height: 200px;
   }
 }
