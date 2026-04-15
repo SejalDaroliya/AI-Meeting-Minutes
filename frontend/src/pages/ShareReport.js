@@ -3,6 +3,7 @@ import "../styles/ShareReport.css";
 import { useLocation } from "react-router-dom";
 
 function ShareReport() {
+  const [showParticipants, setShowParticipants] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState("");
 
@@ -124,8 +125,16 @@ function ShareReport() {
 
       if (response.ok) {
         setStatus(data.message || "Email sent successfully");
+
+        setTimeout(() => {
+          setStatus("");
+        }, 3000); // disappears after 3 sec
       } else {
         setStatus(data.error || "Failed to send email");
+
+        setTimeout(() => {
+          setStatus("");
+        }, 3000);
       }
     } catch (error) {
       setStatus("Server error. Try again.");
@@ -138,9 +147,28 @@ function ShareReport() {
 
   return (
     <div className="share-page">
+      {status && <p className="status">{status}</p>}
       <h1 className="title">Meeting Report</h1>
 
       <div className="report-card" id="report">
+        {/* ✅ ADD THIS BLOCK */}
+        <div className="print-header">
+          <h1>Meeting Report</h1>
+          <div className="meta">
+            <span>
+              <strong>Meeting ID:</strong> {meetingId}
+            </span>
+            <span style={{ marginLeft: "20px" }}>
+              <strong>Date:</strong> {new Date().toLocaleDateString()}
+            </span>
+          </div>
+          <div className="report-card" id="report">
+            {/* all your sections */}
+            ...
+          </div>
+        </div>
+
+        {/* existing content */}
         <div className="section">
           <div className="section-header">
             <h2>{isEditingTitle ? tempTitle : editableReport.title}</h2>
@@ -175,6 +203,9 @@ function ShareReport() {
                       title: tempTitle,
                     });
                     setIsEditingTitle(false);
+
+                    setStatus("Saved ✓");
+                    setTimeout(() => setStatus(""), 2000);
                   }}
                 >
                   Save
@@ -215,11 +246,10 @@ function ShareReport() {
                   contentEditable
                   className="edit-box"
                   suppressContentEditableWarning={true}
-                  onInput={(e) => setTempSummary(e.currentTarget.innerText)}
+                  onBlur={(e) => setTempSummary(e.currentTarget.innerText)}
                 >
                   {tempSummary}
                 </div>
-
                 <div className="edit-actions">
                   <button
                     className="save-btn"
@@ -229,6 +259,9 @@ function ShareReport() {
                         summary: tempSummary,
                       });
                       setIsEditingSummary(false);
+
+                      setStatus("Saved ✓");
+                      setTimeout(() => setStatus(""), 2000);
                     }}
                   >
                     Save
@@ -289,6 +322,8 @@ function ShareReport() {
                       key_points: tempKP,
                     });
                     setIsEditingKP(false);
+                    setStatus("Saved ✓");
+                    setTimeout(() => setStatus(""), 2000);
                   }}
                 >
                   Save
@@ -362,6 +397,9 @@ function ShareReport() {
                       action_items: tempAI,
                     });
                     setIsEditingAI(false);
+
+                    setStatus("Saved ✓");
+                    setTimeout(() => setStatus(""), 2000);
                   }}
                 >
                   Save
@@ -411,6 +449,17 @@ function ShareReport() {
           ))}
         </div>
         <div className="button-row">
+          {showParticipants && (
+            <div className="participants-box">
+              <h3>Participants</h3>
+
+              {participants.map((p) => (
+                <p key={p.user_id}>
+                  {p.name} ({p.email})
+                </p>
+              ))}
+            </div>
+          )}
           <div className="dropdown-container">
             <button
               className="dropdown-btn"
@@ -469,13 +518,10 @@ function ShareReport() {
               </div>
             )}
           </div>
-
           <button className="send-btn" onClick={handleSendEmail}>
             Send Email
           </button>
         </div>
-
-        {status && <p className="status">{status}</p>}
       </div>
     </div>
   );

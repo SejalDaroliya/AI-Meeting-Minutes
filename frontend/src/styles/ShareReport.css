@@ -86,9 +86,34 @@ margin-right:10px;
   transform: scale(0.95);
 }
 
-.status{
-margin-top:10px;
-font-weight:500;
+.status {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #16a34a;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 1000;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.status {
+  animation: fadeIn 0.3s ease;
+}
+
+.status {
+  background: #16a34a;  /* success */
+}
+
+.status.error {
+  background: #dc2626;  /* error */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .selected-tags {
@@ -131,9 +156,28 @@ font-weight:500;
 }
 
 .send-btn:hover,
-.dropdown-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+.dropdown-btn:hover,
+.pdf-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+}
+
+.send-btn,
+.dropdown-btn,
+.pdf-btn {
+  transition: all 0.25s ease;
+}
+
+.send-btn:active,
+.dropdown-btn:active,
+.pdf-btn:active {
+  transform: scale(0.95);
+}
+
+.send-btn,
+.dropdown-btn,
+.pdf-btn {
+  cursor: pointer;
 }
 
 .dropdown-btn,
@@ -141,6 +185,22 @@ font-weight:500;
   min-width: 180px;
 }
 
+.pdf-btn,
+.dropdown-btn {
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.pdf-btn:hover,
+.dropdown-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.4);
+}
+
+.pdf-btn:active,
+.dropdown-btn:active {
+  transform: scale(0.95);
+}
 .button-row {
   display: flex;
   justify-content: center;
@@ -313,10 +373,29 @@ font-weight:500;
     font-size: 28px;
   }
 
-  .report-card {
-    width: 95%;
-    padding: 20px;
-  }
+/* cancel */
+.cancel-btn {
+  background: #e5e7eb;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.print-header,
+.print-footer {
+  display: none;
+}
+
+.print-header,
+.print-footer {
+  display: none;
+}
+
+.meta {
+  display: flex;
+  justify-content: center;
+  gap: 20px;   /* 🔥 controls spacing */
+}
 
   .section h3 {
     font-size: 16px;
@@ -339,7 +418,8 @@ font-weight:500;
     margin-right: 0;
   }
 
-  .send-btn {
+  #report {
+    position: static;
     width: 100%;
   }
 
@@ -348,36 +428,30 @@ font-weight:500;
     width: 100%;
   }
 
-  .dropdown-menu {
-    max-height: 200px;
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 20px;
   }
 
-  /* TAGS WRAP CLEANLY */
-  .selected-tags {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-}
-
-
-/* ================= SMALL PHONES ================= */
-
-@media (max-width: 480px) {
-
-  .title {
-    font-size: 24px;
+  .print-footer {
+    display: block !important;
+    position: fixed;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: #777;
   }
 
-  .report-card {
-    padding: 15px;
+  @page {
+    size: A4;
+    margin: 15mm;
   }
 
-  .pdf-btn {
-    width: 100%;
-  }
-
-  .dropdown-btn {
-    font-size: 14px;
+  .share-page {
+    padding: 0;
+    background: white;
   }
 }
