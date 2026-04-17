@@ -97,7 +97,7 @@ def check_reminders():
 
 
 # run every 1 minute
-scheduler.add_job(check_reminders, "interval", minutes=60)
+scheduler.add_job(check_reminders, "interval", minutes=15)
 
 def send_email(to_emails, subject, html):
     import sib_api_v3_sdk
