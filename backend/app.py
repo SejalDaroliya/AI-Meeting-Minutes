@@ -97,7 +97,7 @@ def check_reminders():
 
 
 # run every 1 minute
-scheduler.add_job(check_reminders, "interval", minutes=1)
+scheduler.add_job(check_reminders, "interval", minutes=60)
 
 def send_email(to_emails, subject, html):
     import sib_api_v3_sdk
@@ -218,13 +218,14 @@ def process_audio():
 
         # 3️⃣ INSERT SUMMARY
         cur.execute("""
-            INSERT INTO summaries (meeting_id, summary_text, key_points, action_items)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO summaries (meeting_id, summary_text, key_points, action_items, decisions)
+            VALUES (%s, %s, %s, %s, %s)
         """, (
             meeting_id,
             data.get("insight"),
             json.dumps(data.get("key_points")),
-            json.dumps(data.get("action_items"))
+            json.dumps(data.get("action_items")),
+            json.dumps(data.get("decisions")) 
         ))
 
         conn.commit()
@@ -336,7 +337,7 @@ def get_meeting(meeting_id):
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT m.title, s.summary_text, s.key_points, s.action_items
+            SELECT m.title, s.summary_text, s.key_points, s.action_items, s.decisions
             FROM meetings m
             JOIN summaries s ON m.meeting_id = s.meeting_id
             WHERE m.meeting_id = %s
@@ -354,7 +355,8 @@ def get_meeting(meeting_id):
             "title": data[0],
             "summary": data[1],
             "key_points": data[2],
-            "action_items": data[3]
+            "action_items": data[3],
+            "decisions": json.loads(data[4]) if data[4] else []
         }
 
      
@@ -625,7 +627,7 @@ def get_meeting_summary(meeting_id):
 
     cur.execute("""
         SELECT m.title, m.meeting_date, m.transcript,
-               s.summary_text, s.key_points, s.action_items
+               s.summary_text, s.key_points, s.action_items, s.decisions
         FROM meetings m
         JOIN summaries s ON m.meeting_id = s.meeting_id
         WHERE m.meeting_id = %s
@@ -639,7 +641,7 @@ def get_meeting_summary(meeting_id):
     if not result:
         return jsonify({"error": "Meeting not found"}), 404
 
-    title, date, transcript, summary, key_points, action_items = result
+    title, date, transcript, summary, key_points, action_items, decisions = result
 
     return jsonify({
         "title": title,
@@ -647,7 +649,8 @@ def get_meeting_summary(meeting_id):
         "transcript": transcript,
         "insight": summary,
         "key_points": key_points,
-        "action_items": action_items
+        "action_items": action_items,
+        "decisions": json.loads(decisions) if decisions else [] 
     })
 
 #user stats at dashboard

@@ -1,7 +1,6 @@
 import "../styles/SummaryPage.css";
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Reminder from "../components/Reminder";
 import { useLoader } from "../context/LoaderContext";
 
 function SummaryPage() {
@@ -10,9 +9,8 @@ function SummaryPage() {
   const BASE_URL = process.env.REACT_APP_API_URL;
 
   const meetingId = location.state?.meeting_id;
-  const hasTranscript = location.state?.transcript;
 
-  const [data, setData] = useState(location.state || null);
+  const [data, setData] = useState(null);
   const { showLoader, hideLoader } = useLoader();
 
   const [activeTab, setActiveTab] = useState("summary");
@@ -26,23 +24,19 @@ function SummaryPage() {
   const selectedVoiceRef = useRef(null);
 
   // 📋 SHARE
-  const [shareStatus, setShareStatus] = useState(""); // "", "copied", "error"
-
-  const storedUser = JSON.parse(localStorage.getItem("user"));
+  //const [shareStatus, setShareStatus] = useState(""); // "", "copied", "error"
 
   const keyPoints = data?.key_points || [];
   const actions = data?.action_items || [];
   // Handle both "decisions" and "decision" key from API
-  const decisions = data?.decisions || data?.decision || [];
+  const decisions =
+  typeof data?.decisions === "string"
+    ? JSON.parse(data.decisions)
+    : data?.decisions || [];
   const insight = data?.insight || data?.summary || "";
   const timeTaken = data?.processing_time || null;
 
-  const meetingTitle =
-    location.state?.title ||
-    data?.title ||
-    data?.meeting_title ||
-    data?.name ||
-    "Untitled Meeting";
+  const meetingTitle = data?.title || "Untitled Meeting";
 
   const meetingDate = data?.date || data?.created_at || null;
 
@@ -71,30 +65,30 @@ function SummaryPage() {
     };
   }, []);
 
-  // Keep selectedVoiceRef in sync with state
-  useEffect(() => {
-    selectedVoiceRef.current = selectedVoice;
-  }, [selectedVoice]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
+  const fetchSummary = async () => {
+    if (!meetingId) return;
 
-  // ✅ FETCH DATA
-  useEffect(() => {
-    const fetchSummary = async () => {
-      if (!meetingId) return;
-      showLoader();
-      try {
-        const res = await fetch(`${BASE_URL}/meeting-summary/${meetingId}`);
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error);
-        setData(result);
-      } catch (err) {
-        console.error(err);
-        alert("Error loading summary");
-      }
+    showLoader();
+
+    try {
+      const res = await fetch(`${BASE_URL}/meeting-summary/${meetingId}`);
+      const result = await res.json();
+
+      if (!res.ok) throw new Error(result.error);
+
+      setData(result);
+    } catch (err) {
+      console.error(err);
+      alert("Error loading summary");
+    } finally {
       hideLoader();
-    };
+    }
+  };
 
-    if (!hasTranscript && meetingId) fetchSummary();
-  }, [meetingId]);
+  fetchSummary();
+}, [meetingId, BASE_URL, showLoader, hideLoader]);
 
   // 🔊 FIXED READ — uses refs so voices are always available
   const speakText = () => {
@@ -152,58 +146,58 @@ function SummaryPage() {
   };
 
   // ✅ FIXED SHARE — fallback for non-HTTPS environments
-  const handleShare = async () => {
-    const text = `Meeting: ${meetingTitle}
+//   const handleShare = async () => {
+//     const text = `Meeting: ${meetingTitle}
 
-Summary:
-${insight}
+// Summary:
+// ${insight}
 
-Key Points:
-${keyPoints.join("\n")}
+// Key Points:
+// ${keyPoints.join("\n")}
 
-Action Items:
-${actions.join("\n")}
+// Action Items:
+// ${actions.join("\n")}
 
-Decisions:
-${decisions.join("\n")}`;
+// Decisions:
+// ${decisions.join("\n")}`;
 
-    // Try modern clipboard API first
-    if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(text);
-        setShareStatus("copied");
-        setTimeout(() => setShareStatus(""), 3000);
-        return;
-      } catch (err) {
-        console.warn("Clipboard API failed, using fallback:", err);
-      }
-    }
+//     // Try modern clipboard API first
+//     if (navigator.clipboard && window.isSecureContext) {
+//       try {
+//         await navigator.clipboard.writeText(text);
+//         setShareStatus("copied");
+//         setTimeout(() => setShareStatus(""), 3000);
+//         return;
+//       } catch (err) {
+//         console.warn("Clipboard API failed, using fallback:", err);
+//       }
+//     }
 
-    // Fallback: execCommand (works on HTTP / older browsers)
-    try {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      textarea.style.top = "0";
-      textarea.style.left = "0";
-      document.body.appendChild(textarea);
-      textarea.focus();
-      textarea.select();
-      const success = document.execCommand("copy");
-      document.body.removeChild(textarea);
-      if (success) {
-        setShareStatus("copied");
-        setTimeout(() => setShareStatus(""), 3000);
-      } else {
-        throw new Error("execCommand copy failed");
-      }
-    } catch (err) {
-      console.error("Share failed:", err);
-      setShareStatus("error");
-      setTimeout(() => setShareStatus(""), 3000);
-    }
-  };
+//     // Fallback: execCommand (works on HTTP / older browsers)
+//     try {
+//       const textarea = document.createElement("textarea");
+//       textarea.value = text;
+//       textarea.style.position = "fixed";
+//       textarea.style.opacity = "0";
+//       textarea.style.top = "0";
+//       textarea.style.left = "0";
+//       document.body.appendChild(textarea);
+//       textarea.focus();
+//       textarea.select();
+//       const success = document.execCommand("copy");
+//       document.body.removeChild(textarea);
+//       if (success) {
+//         setShareStatus("copied");
+//         setTimeout(() => setShareStatus(""), 3000);
+//       } else {
+//         throw new Error("execCommand copy failed");
+//       }
+//     } catch (err) {
+//       console.error("Share failed:", err);
+//       setShareStatus("error");
+//       setTimeout(() => setShareStatus(""), 3000);
+//     }
+//   };
 
   // ✅ FIXED DATE FORMAT — "April 16, 2026 at 5:30 AM"
   const formatDateTime = (date) => {
