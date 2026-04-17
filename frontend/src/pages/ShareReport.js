@@ -3,7 +3,8 @@ import "../styles/ShareReport.css";
 import { useLocation } from "react-router-dom";
 
 function ShareReport() {
-  const [showParticipants, setShowParticipants] = useState(false);
+  //const [showParticipants, setShowParticipants] = useState(false);
+  const [showParticipants] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState("");
 
