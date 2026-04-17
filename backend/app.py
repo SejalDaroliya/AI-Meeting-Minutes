@@ -198,13 +198,14 @@ def process_audio():
 
         # 1️⃣ INSERT MEETING FIRST
         cur.execute("""
-            INSERT INTO meetings (user_id, title, meeting_date, transcript)
-            VALUES (%s, %s, NOW(), %s)
+            INSERT INTO meetings (user_id, title, meeting_date, transcript, processing_time)
+            VALUES (%s, %s, NOW(), %s, %s)
             RETURNING meeting_id
         """, (
             creator_id,
             title,
-            transcript
+            transcript,
+            processing_time
         ))
 
         meeting_id = cur.fetchone()[0]
@@ -627,7 +628,7 @@ def get_meeting_summary(meeting_id):
 
     cur.execute("""
         SELECT m.title, m.meeting_date, m.transcript,
-               s.summary_text, s.key_points, s.action_items, s.decisions
+               s.summary_text, s.key_points, s.action_items, s.decisions, m.processing_time
         FROM meetings m
         JOIN summaries s ON m.meeting_id = s.meeting_id
         WHERE m.meeting_id = %s
@@ -641,12 +642,13 @@ def get_meeting_summary(meeting_id):
     if not result:
         return jsonify({"error": "Meeting not found"}), 404
 
-    title, date, transcript, summary, key_points, action_items, decisions = result
+    title, date, transcript, summary, key_points, action_items, decisions,processing_time = result
 
     return jsonify({
         "title": title,
         "date": date,
         "transcript": transcript,
+        "processing_time": processing_time,
         "insight": summary,
         "key_points": key_points,
         "action_items": action_items,
