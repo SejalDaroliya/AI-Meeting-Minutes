@@ -1,9 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import "../styles/ShareReport.css";
 import { useLocation } from "react-router-dom";
 
 function ShareReport() {
-  //const [showParticipants, setShowParticipants] = useState(false);
+  const newItemRef = useRef(null);
+  const [expandedTag, setExpandedTag] = useState(null);
+  //UNDO STAE//
+  const [lastDeleted, setLastDeleted] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState(null);
   const [showParticipants] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState("");
@@ -23,7 +28,7 @@ function ShareReport() {
   const [others, setOthers] = useState([]);
   const [selectedEmails, setSelectedEmails] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
- // const [report, setReport] = useState(null);
+  // const [report, setReport] = useState(null);
   const BASE_URL = process.env.REACT_APP_API_URL;
 
   const location = useLocation();
@@ -81,8 +86,6 @@ function ShareReport() {
     }
   }, [meetingId, fetchRecipients, fetchReport]);
 
-   
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest(".dropdown-container")) {
@@ -109,6 +112,8 @@ function ShareReport() {
       return;
     }
 
+    setSending(true); // 🔥 START LOADING
+
     try {
       const response = await fetch(`${BASE_URL}/send-email`, {
         method: "POST",
@@ -118,7 +123,7 @@ function ShareReport() {
         body: JSON.stringify({
           meeting_id: meetingId,
           selected_emails: selectedEmails,
-          report: editableReport, // ✅ SEND EDITED DATA
+          report: editableReport,
         }),
       });
 
@@ -126,20 +131,17 @@ function ShareReport() {
 
       if (response.ok) {
         setStatus(data.message || "Email sent successfully");
-
-        setTimeout(() => {
-          setStatus("");
-        }, 3000); // disappears after 3 sec
       } else {
         setStatus(data.error || "Failed to send email");
-
-        setTimeout(() => {
-          setStatus("");
-        }, 3000);
       }
+
+      setTimeout(() => setStatus(""), 3000);
     } catch (error) {
       setStatus("Server error. Try again.");
+      setTimeout(() => setStatus(""), 3000);
     }
+
+    setSending(false); // 🔥 STOP LOADING
   };
 
   const downloadPDF = () => {
@@ -148,7 +150,27 @@ function ShareReport() {
 
   return (
     <div className="share-page">
-      {status && <p className="status">{status}</p>}
+      {status && (
+        <div className="status">
+          {status}
+
+          {lastDeleted && (
+            <button
+              className="undo-btn"
+              onClick={() => {
+                const updated = [...tempAI];
+                updated.splice(lastDeleted.index, 0, lastDeleted.item);
+                setTempAI(updated);
+
+                setLastDeleted(null);
+                setStatus("");
+              }}
+            >
+              Undo
+            </button>
+          )}
+        </div>
+      )}
       <h1 className="title">Meeting Report</h1>
 
       <div className="report-card" id="report">
@@ -162,10 +184,6 @@ function ShareReport() {
             <span style={{ marginLeft: "20px" }}>
               <strong>Date:</strong> {new Date().toLocaleDateString()}
             </span>
-          </div>
-          <div className="report-card" id="report">
-            {/* all your sections */}
-            ...
           </div>
         </div>
 
@@ -277,7 +295,12 @@ function ShareReport() {
                 </div>
               </>
             ) : (
-              <p className="summary-text">{editableReport.summary}</p>
+              <p className="summary-text">
+                {editableReport.summary?.trim() === "..." ||
+                !editableReport.summary?.trim()
+                  ? ""
+                  : editableReport.summary}
+              </p>
             )}
           </div>
         </div>
@@ -369,22 +392,36 @@ function ShareReport() {
           {isEditingAI ? (
             <>
               {tempAI.map((item, i) => (
-                <input
-                  key={i}
-                  className="edit-input"
-                  value={item}
-                  onChange={(e) => {
-                    const updated = [...tempAI];
-                    updated[i] = e.target.value;
-                    setTempAI(updated);
-                  }}
-                />
+                <div key={i} className="edit-row">
+                  <input
+                    ref={i === tempAI.length - 1 ? newItemRef : null}
+                    className="edit-input"
+                    value={item}
+                    onChange={(e) => {
+                      const updated = [...tempAI];
+                      updated[i] = e.target.value;
+                      setTempAI(updated);
+                    }}
+                  />
+
+                  <button
+                    className="delete-btn"
+                    onClick={() => setDeleteIndex(i)}
+                  >
+                    ❌
+                  </button>
+                </div>
               ))}
 
               {/* ➕ Add new item */}
               <button
                 className="add-btn"
-                onClick={() => setTempAI([...tempAI, ""])}
+                onClick={() => {
+                  setTempAI([...tempAI, ""]);
+                  setTimeout(() => {
+                    newItemRef.current?.focus();
+                  }, 0);
+                }}
               >
                 + Add Item
               </button>
@@ -433,15 +470,22 @@ function ShareReport() {
       <div className="email-box">
         <h2>Send Report to Participants</h2>
         <div className="selected-tags">
-          {selectedEmails.map((email) => (
-            <span key={email} className="tag">
+          {selectedEmails.map((email, i) => (
+            <span
+              key={i}
+              className={`tag ${expandedTag === email ? "expanded" : ""}`}
+              onClick={() =>
+                setExpandedTag(expandedTag === email ? null : email)
+              }
+              title={email}
+            >
               {email}
+
               <span
-                onClick={() => toggleEmail(email)}
-                style={{
-                  marginLeft: "6px",
-                  cursor: "pointer",
-                  fontWeight: "bold",
+                className="remove-tag"
+                onClick={(e) => {
+                  e.stopPropagation(); // 🔥 important (prevents expand click)
+                  setSelectedEmails(selectedEmails.filter((e) => e !== email));
                 }}
               >
                 ✕
@@ -519,11 +563,60 @@ function ShareReport() {
               </div>
             )}
           </div>
-          <button className="send-btn" onClick={handleSendEmail}>
-            Send Email
+          <button
+            className="send-btn"
+            onClick={handleSendEmail}
+            disabled={sending || selectedEmails.length === 0}
+          >
+            {sending ? "Sending..." : "Send Email"}
           </button>
         </div>
       </div>
+
+      {deleteIndex !== null && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Delete Action Item?</h3>
+            <p>This action cannot be undone.</p>
+
+            <div className="modal-actions">
+              <button
+                className="cancel-btn"
+                onClick={() => setDeleteIndex(null)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="delete-confirm-btn"
+                onClick={() => {
+                  const removedItem = tempAI[deleteIndex];
+
+                  setLastDeleted({
+                    item: removedItem,
+                    index: deleteIndex,
+                  });
+
+                  const updated = tempAI.filter(
+                    (_, index) => index !== deleteIndex,
+                  );
+                  setTempAI(updated);
+                  setDeleteIndex(null);
+
+                  setStatus("Deleted");
+
+                  setTimeout(() => {
+                    setStatus("");
+                    setLastDeleted(null);
+                  }, 4000);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

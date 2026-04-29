@@ -36,6 +36,20 @@
 
 /* ================= BUTTONS ================= */
 
+
+.undo-btn {
+  background: transparent;
+  border: none;
+  color: #e9d5ff;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.undo-btn:hover {
+  color: white;
+}
+
 .pdf-btn,
 .send-btn,
 .dropdown-btn {
@@ -61,20 +75,29 @@
   transform: scale(0.95);
 }
 
+
 /* ================= STATUS ================= */
 
 .status {
   position: fixed;
   top: 20px;
   right: 20px;
-  background: #16a34a;
+
+  background: linear-gradient(135deg, #7c3aed, #5b21b6); /* 🔥 changed */
   color: white;
+
   padding: 10px 18px;
-  border-radius: 8px;
+  border-radius: 10px; /* slightly smoother */
+
   font-size: 14px;
   z-index: 1000;
-}
 
+  display: flex;              /* 🔥 for Undo alignment */
+  align-items: center;
+  gap: 10px;
+
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* subtle polish */
+}
 /* ================= DROPDOWN ================= */
 
 .dropdown-container {
@@ -149,6 +172,8 @@
   gap: 10px;
 }
 
+
+
 .save-btn {
   background: #7c3aed;
   color: white;
@@ -196,6 +221,85 @@
   border-radius: 10px;
 }
 
+.edit-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.delete-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6d28d9;   /* match your theme */
+  margin-left: auto; /* pushes to right */
+}
+
+.delete-btn:hover {
+  color: #4c1d95;
+  transform: scale(1.2);
+}
+
+/*========== modal ============*/
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-box {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  width: 320px;
+  text-align: center;
+}
+.modal-box { animation: scaleIn .18s ease; }
+@keyframes scaleIn {
+  from { transform: scale(.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-box h3 {
+  color: #5b21b6;   /* purple heading */
+}
+
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.cancel-btn {
+  background: #e5e7eb;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.delete-confirm-btn {
+  background: linear-gradient(135deg, #7c3aed, #5b21b6); /* purple */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.delete-confirm-btn:hover {
+  opacity: 0.9;
+}
+
 /* ================= META ================= */
 
 .meta {
@@ -210,18 +314,14 @@
 .print-footer {
   display: none;
 }
-
 @media print {
 
-  body * {
+  body {
     visibility: hidden;
   }
 
-  #report, #report * {
-    visibility: visible;
-  }
-
   #report {
+    visibility: visible;
     width: 100%;
   }
 
@@ -234,23 +334,70 @@
   .print-header {
     display: block;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
+    margin-top: 0; 
+  }
+  .print-header h1 {
+  margin: 0;
+  font-size: 20px;
   }
 
-  .print-footer {
-    display: block;
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    text-align: center;
+  .meta {
+    margin-top: 4px;
+  }
+
+ .print-footer {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+}
+  html, body {
+    height: auto;
   }
 
   @page {
     size: A4;
     margin: 15mm;
   }
+
+  
+
+  .edit-btn {
+  display: none !important;
+  }
+  .edit-actions,
+  .edit-input {
+    display: none !important;
+  }
+  .title {
+  display: none !important;
+  }
+
+  html, body {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
+.share-page {
+  padding: 0 !important;
+}
+
+#report {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#report {
+  page-break-after: auto !important;
+}
+
+.print-footer {
+  page-break-before: avoid !important;
+}
+}
 /* ================= MOBILE ================= */
 
 @media (max-width: 768px) {
@@ -266,5 +413,20 @@
 
   .dropdown-menu {
     max-height: 200px;
+    left: 0;
+    width: 100%;
   }
+
+  .button-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .pdf-btn,
+  .send-btn,
+  .dropdown-btn,
+  .selected-count {
+    width: 100%;
+  }
+
 }
