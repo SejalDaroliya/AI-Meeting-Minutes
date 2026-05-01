@@ -23,10 +23,35 @@
 }
 
 /* LOGO */
-.logo {
-  font-size: 24px;
+/* LOGO */
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.logo-text {
+  font-size: 34px;
   font-weight: 700;
-  color: #5b21b6;
+  color: #1f2937;
+  letter-spacing: -0.3px;
+}
+
+.logo-ai {
+  color: #7c3aed;
+}
+
+.tagline {
+  font-size: 16px;
+  color: #000000;
+  margin: 4px 0 0 0;
 }
 
 /* RIGHT SIDE */
@@ -160,9 +185,7 @@
     gap: 16px;
   }
 
-  .logo {
-    font-size: 22px;
-  }
+  .logo-text { font-size: 18px; }
 }
 
 /* ================= MOBILE ================= */
@@ -202,9 +225,7 @@
     width: 95%;
   }
 
-  .logo {
-    font-size: 20px;
-  }
+  .logo-text { font-size: 16px; }
 
   .nav-links {
     gap: 10px;

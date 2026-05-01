@@ -36,17 +36,23 @@ function Dashboard() {
       // 🔥 NEW STATES
   const [stats, setStats] = useState({
     meetings: 0,
-    minutes: 0,
+    summaries: 0,
     actions: 0,
-    files: 0
+    avg_time: 0
   });
 
+  const [toast, setToast] = useState({ show: false, message: "", type: "" });
+
+const showToast = (message, type = "error") => {
+  setToast({ show: true, message, type });
+  setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
+};
   
 
 
   // 🔥 COMMON UPLOAD FUNCTION
   const uploadAudio = async (file) => {
-    if (!file) return alert("No file found");
+    if (!file) return showToast("No file found");
 
     const formData = new FormData();
     const fileName = meetingTitle || "recording";
@@ -66,12 +72,17 @@ function Dashboard() {
 
   // 🔥 FILE UPLOAD
   const handleGenerate = async () => {
-    if (!selectedFile) {
-      alert("Please upload a meeting first");
-      return;
-    }
+  if (!meetingTitle.trim()) {
+    showToast("Please enter a meeting title first");
+    return;
+  }
 
-    showLoader();
+  if (!selectedFile) {
+    showToast("Please upload a meeting first");
+    return;
+  }
+
+  showLoader();
 
     try {
       const result = await uploadAudio(selectedFile);
@@ -79,11 +90,11 @@ function Dashboard() {
       if (result.success) {
         navigate("/summary", { state: result });
       } else {
-        alert("Something went wrong");
+        showToast("Something went wrong");
       }
     } catch (err) {
       console.error(err);
-      alert("Error generating summary");
+      showToast("Error generating summary");
     }
 
     hideLoader();
@@ -92,7 +103,7 @@ function Dashboard() {
   // 🔥 RECORDING UPLOAD
   const handleRecordingUpload = async () => {
     if (!audioBlob) {
-      alert("No recording found");
+      showToast("No recording found")
       return;
     }
 
@@ -104,11 +115,11 @@ function Dashboard() {
       if (result.success) {
         navigate("/summary", { state: result });
       } else {
-        alert("Something went wrong");
+        showToast("Something went wrong");
       }
     } catch (err) {
       console.error(err);
-      alert("Error processing recording");
+      showToast("Error processing recording");
     }
 
     hideLoader();
@@ -170,10 +181,10 @@ const fetchStats = useCallback(async (userId) => {
     const data = await res.json();
 
     setStats({
-      meetings: data.meetings || 0,
-      minutes: data.minutes || 0,
-      actions: data.actions || 0,
-      files: data.files || 0,
+    meetings: data.meetings || 0,
+    summaries: data.summaries || 0,
+    actions: data.actions || 0,
+    avg_time: data.avg_time || 0,
     });
   } catch (err) {
     console.log("Stats error:", err);
@@ -232,127 +243,170 @@ useEffect(() => {
       {/* HERO */}
       <div className="hero">
         <div className="hero-text">
-          <h1>Welcome, {username} 👋</h1>
+  <h1>Welcome back, <span className="hero-name">{username}</span> 👋</h1>
+  <p className="hero-subtitle">
+    Your meetings deserve more than scattered notes. MeetPilot AI does the heavy lifting — so you stay focused on what matters most.
+  </p>
+  <div className="hero-badges">
+    <span className="badge">⚡ Instant Summaries</span>
+    <span className="badge">✅ Action Items</span>
+    <span className="badge">🎯 Key Decisions</span>
+  </div>
 
-          <p>
-            Upload or record meetings and generate AI-powered summaries,
-            key points, and action items.
-          </p>
+  <input
+    type="text"
+    placeholder="Enter meeting title"
+    value={meetingTitle}
+    onChange={(e) => setMeetingTitle(e.target.value)}
+    className="input"
+  />
 
-          {/* 🆕 Meeting Title */}
-          <input
-            type="text"
-            placeholder="Enter meeting title"
-            value={meetingTitle}
-            onChange={(e) => setMeetingTitle(e.target.value)}
-            className="input"
-          />
+  <div className="hero-buttons">
+    <label className="secondary-btn">
+      Upload Meeting
+      <input type="file" hidden onChange={(e) => setSelectedFile(e.target.files[0])} />
+    </label>
 
-          <div className="hero-buttons">
+    <button onClick={handleMicClick} className="secondary-btn">
+      🎤 Live Mic
+    </button>
 
-            <label className="secondary-btn">
-              Upload Meeting
-              <input
-                type="file"
-                hidden
-                onChange={(e) => setSelectedFile(e.target.files[0])}
-              />
-            </label>
+    <button className="tertiary-btn" onClick={() => setShowUsersPanel(!showUsersPanel)}>
+      👥 Select Participants ({selectedUsers.length})
+    </button>
 
-            <button onClick={handleMicClick} className="secondary-btn">
-              🎤 Live Mic
-            </button>
+    <button onClick={handleGenerate} className="primary-btn">
+      Generate Summary
+    </button>
 
-            <button onClick={handleGenerate} className="primary-btn">
-              Generate Summary
-            </button>
-
-            <button
-              className="secondary-btn"
-              onClick={() => setShowUsersPanel(!showUsersPanel)}
-            >
-              👥 Select Participants ({selectedUsers.length})
-            </button>
-            {showUsersPanel && (
-              <div className="users-panel">
-
-                <h3>Select Participants</h3>
-
-                <div className="users-list">
-                  {users.length === 0 ? (
-                    <p>No users found</p>
-                  ) : (
-                    users.map((user) => (
-                      <label key={user.user_id} className="user-item">
-                        <input
-                          type="checkbox"
-                          checked={selectedUsers.includes(user.user_id)}
-                          onChange={() => toggleUser(user.user_id)}
-                        />
-                        <span>
-                          {user.name} ({user.email})
-                        </span>
-                      </label>
-                    ))
-                  )}
-                </div>
-
-                <button
-                  className="primary-btn"
-                  onClick={() => setShowUsersPanel(false)}
-                >
-                  Done
-                </button>
-
-              </div>
-            )}
-
-          </div>
-
-          {/* Selected file */}
-          {selectedFile && (
-            <p className="file-name">📁 {selectedFile.name}</p>
+    {showUsersPanel && (
+      <div className="users-panel">
+        <h3>Select Participants</h3>
+        <div className="users-list">
+          {users.length === 0 ? (
+            <p>No users found</p>
+          ) : (
+            users.map((user) => (
+              <label key={user.user_id} className="user-item">
+                <input
+                  type="checkbox"
+                  checked={selectedUsers.includes(user.user_id)}
+                  onChange={() => toggleUser(user.user_id)}
+                />
+                <span>{user.name} ({user.email})</span>
+              </label>
+            ))
           )}
-
-          {/* 🎧 Preview recording */}
-          {audioBlob && (
-            <audio controls src={URL.createObjectURL(audioBlob)} />
-          )}
-
         </div>
+        <button className="primary-btn" onClick={() => setShowUsersPanel(false)}>
+          Done
+        </button>
+      </div>
+    )}
+  </div>
+
+  {selectedFile && (
+  <div className="file-preview">
+    <span className="file-name">📁 {selectedFile.name}</span>
+    <button className="file-remove-btn" onClick={() => setSelectedFile(null)}>✕</button>
+  </div>
+)}
+  {audioBlob && <audio controls src={URL.createObjectURL(audioBlob)} />}
+</div>
 
         {/* Illustration */}
         <div className="hero-illustration">
-          <div className="circle big"></div>
-          <div className="circle medium"></div>
-          <div className="circle small"></div>
-        </div>
+        <div className="right-panel">
+
+  <div className="right-panel-header">
+    <img src="/logo.png" alt="MeetPilot AI" className="panel-logo" />
+    <div>
+      <h3 className="panel-title">MeetPilot AI</h3>
+      <span className="panel-tag">Who it's built for</span>
+    </div>
+  </div>
+
+  {/* HERO IMAGE */}
+  <img src="/hero_person.png" alt="hero" className="panel-hero-img" />
+
+  <div className="panel-persona">
+    <div className="persona-icon">👔</div>
+    <div>
+      <h4>Team Leads & Managers</h4>
+      <p>Auto-send action items to members who missed the meeting — no follow-up needed.</p>
+    </div>
+  </div>
+
+  <div className="panel-persona">
+    <div className="persona-icon">🧑‍💻</div>
+    <div>
+      <h4>Remote Workers</h4>
+      <p>Stay aligned across time zones without sitting through every recorded call.</p>
+    </div>
+  </div>
+
+  <div className="panel-persona">
+    <div className="persona-icon">📊</div>
+    <div>
+      <h4>Consultants & Analysts</h4>
+      <p>Capture client decisions and deliverables instantly — straight from the conversation.</p>
+    </div>
+  </div>
+
+  <div className="panel-persona">
+    <div className="persona-icon">🎓</div>
+    <div>
+      <h4>Educators & Coaches</h4>
+      <p>Turn every faculty and staff meeting into clear notes for getting reference anytime.</p>
+    </div>
+  </div>
+
+  <div className="panel-footer">
+    <span className="panel-stat">🏢 Built for teams of all sizes</span>
+    <span className="panel-dot"></span>
+    <span className="panel-stat">⚡ Results in seconds</span>
+  </div>
+
+       </div>
+       </div>
       </div>
 
       {/* 🔥 DYNAMIC STATS */}
-      <div className="stats-container">
+<div className="stats-container">
 
-        <div className="stat-card">
-          <h3>{stats.meetings}</h3>
-          <p>Meetings Uploaded</p>
-        </div>
+  <div className="stat-card">
+    <div className="stat-top">
+      <span className="stat-icon">🎙️</span>
+      <h3>{stats.meetings}</h3>
+    </div>
+    <p>Meetings Processed</p>
+  </div>
 
-        <div className="stat-card">
-          <h3>{stats.minutes}</h3>
-          <p>Minutes Generated</p>
-        </div>
+  <div className="stat-card">
+    <div className="stat-top">
+      <span className="stat-icon">📝</span>
+      <h3>{stats.summaries}</h3>
+    </div>
+    <p>Summaries Generated</p>
+  </div>
 
-        <div className="stat-card">
-          <h3>{stats.actions}</h3>
-          <p>Action Items</p>
-        </div>
+  <div className="stat-card">
+    <div className="stat-top">
+      <span className="stat-icon">✅</span>
+      <h3>{stats.actions}</h3>
+    </div>
+    <p>Action Items Extracted</p>
+  </div>
 
-        <div className="stat-card">
-          <h3>{stats.files}</h3>
-          <p>Files Uploaded</p>
-        </div>
+  <div className="stat-card">
+    <div className="stat-top">
+      <span className="stat-icon">⚡</span>
+      <h3>{stats.avg_time}s</h3>
+    </div>
+    <p>Avg Processing Time</p>
+  </div>
 
-      </div>
+</div>
 
       {/* 🔥 DYNAMIC RECENT MEETINGS */}
       <div className="recent">
@@ -363,13 +417,23 @@ useEffect(() => {
 ) : (
   recentMeetings.map((meeting) => (
     <div key={meeting.meeting_id} className="meeting">
-      <span>
-        {meeting.title} <br />
-        <small style={{ color: "#666" }}>
-          {new Date(meeting.date).toLocaleString()}
-        </small>
-      </span>
-
+      <div className="meeting-info">
+        <div className="meeting-icon">🎙️</div>
+        <div className="meeting-details">
+          <span className="meeting-title">{meeting.title}</span>
+          <span className="meeting-date">
+            {new Date(meeting.date).toLocaleString("en-IN", {
+              timeZone: "Asia/Kolkata",
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true
+            })}
+          </span>
+        </div>
+      </div>
       <button
         onClick={() =>
           navigate("/summary", { state: { meeting_id: meeting.meeting_id } })
@@ -401,6 +465,14 @@ useEffect(() => {
           onClose={() => setShowReminder(false)}
         />
       )}
+
+      {toast.show && (
+        <div className={`toast ${toast.type}`}>
+          <span className="toast-icon">{toast.type === "error" ? "❌" : "✅"}</span>
+          <span>{toast.message}</span>
+        </div>
+      )}
+
     </div>
   );
 }
