@@ -10,14 +10,12 @@ function Navbar({ meeting_id, user_name, onReminderClick }) {
     <div className="navbar">
       {/* LEFT SIDE */}
       <div className="nav-left">
-        <h2 className="logo">
-          <span>MeetPilot AI</span>
-          <span className="logo">🤖</span>
-        </h2>
-        <p className="tagline">
-          Transform conversations into smart summaries instantly.
-        </p>
-      </div>
+  <div className="logo-wrapper">
+    <img src="/logo.png" alt="logo" className="logo-img" />
+    <span className="logo-text">MeetPilot <span className="logo-ai">AI</span></span>
+  </div>
+  <p className="tagline">Transform conversations into smart summaries instantly.</p>
+</div>
 
       {/* RIGHT SIDE */}
       <div className="nav-right">

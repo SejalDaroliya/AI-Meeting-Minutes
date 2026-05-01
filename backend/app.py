@@ -197,13 +197,17 @@ def process_audio():
         user_id = int(user_id)  # ✅ IMPORTANT FIX
 
         # 1️⃣ INSERT MEETING FIRST
+        ist = pytz.timezone('Asia/Kolkata')
+        now_ist = datetime.now(ist)
+
         cur.execute("""
             INSERT INTO meetings (user_id, title, meeting_date, transcript, processing_time)
-            VALUES (%s, %s, NOW(), %s, %s)
+            VALUES (%s, %s, %s, %s, %s)
             RETURNING meeting_id
         """, (
             creator_id,
             title,
+            now_ist,
             transcript,
             processing_time
         ))
@@ -394,6 +398,7 @@ def get_recipients(meeting_id):
     cur.close()
     conn.close()
 
+    
     return jsonify({
         "participants": [
             {"user_id": p[0], "name": p[1], "email": p[2]}
@@ -615,7 +620,7 @@ def get_recent_meetings(user_id):
             {
                 "meeting_id": m[0],
                 "title": m[1],
-                "date": m[2]
+                "date": m[2].isoformat() if m[2] else None
             }
             for m in meetings
         ]
@@ -668,12 +673,12 @@ def get_user_stats(user_id):
 
         # Total summaries
         cur.execute("""
-            SELECT COUNT(*)
+            SELECT COUNT(s.summary_id)
             FROM summaries s
             JOIN meetings m ON s.meeting_id = m.meeting_id
             WHERE m.user_id = %s
         """, (user_id,))
-        total_minutes = cur.fetchone()[0]
+        total_summaries = cur.fetchone()[0]
 
         # Total action items
         cur.execute("""
@@ -682,42 +687,44 @@ def get_user_stats(user_id):
             JOIN meetings m ON s.meeting_id = m.meeting_id
             WHERE m.user_id = %s
         """, (user_id,))
-
         rows = cur.fetchall()
-
         total_actions = 0
-
         for row in rows:
             if row[0]:
-                # ✅ FIX HERE
                 if isinstance(row[0], list):
                     items = row[0]
                 else:
                     items = json.loads(row[0])
-
                 total_actions += len(items)
+
+        # Avg processing time
+        cur.execute("""
+            SELECT ROUND(AVG(NULLIF(processing_time, 0))::numeric, 1)
+            FROM meetings
+            WHERE user_id = %s AND processing_time IS NOT NULL
+        """, (user_id,))
+        result = cur.fetchone()[0]
+        avg_time = float(result) if result else 0
 
         cur.close()
         conn.close()
 
         return jsonify({
             "meetings": total_meetings or 0,
-            "minutes": total_minutes or 0,
+            "summaries": total_summaries or 0,
             "actions": total_actions or 0,
-            "files": total_meetings or 0
+            "avg_time": avg_time or 0
         })
 
     except Exception as e:
-        print("STATS ERROR:", e)  # 👈 VERY IMPORTANT
+        print("STATS ERROR:", e)
         return jsonify({
             "meetings": 0,
-            "minutes": 0,
+            "summaries": 0,
             "actions": 0,
-            "files": 0,
+            "avg_time": 0,
             "error": str(e)
-        }), 200   # 👈 return 200 so frontend still works
-    
-
+        }), 200
 #recent meeting stats at dashboard
 @app.route("/user-meetings/<int:user_id>", methods=["GET"])
 def get_user_meetings(user_id):
