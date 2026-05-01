@@ -1,8 +1,9 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Loader  from "./components/Loader";
+import Profile from "./pages/ProfilePage.js";
+import Loader from "./components/Loader";
 import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import SummaryPage from "./pages/SummaryPage";
@@ -18,7 +19,7 @@ function App() {
   const [showReminder, setShowReminder] = useState(false);
   return (
     <BrowserRouter>
-      { loading && <Loader />}
+      {loading && <Loader />}
       {/* ✅ Toast container must be inside return */}
       <ToastContainer position="top-right" autoClose={2000} />
 
@@ -27,7 +28,7 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <Layout  onReminderClick={() => setShowReminder(true)}>
+            <Layout onReminderClick={() => setShowReminder(true)}>
               <Dashboard />
             </Layout>
           }
@@ -36,7 +37,7 @@ function App() {
         <Route
           path="/summary"
           element={
-            <Layout  onReminderClick={() => setShowReminder(true)}>
+            <Layout onReminderClick={() => setShowReminder(true)}>
               <SummaryPage />
             </Layout>
           }
@@ -45,15 +46,24 @@ function App() {
         <Route
           path="/share-report"
           element={
-            <Layout  onReminderClick={() => setShowReminder(true)}>
+            <Layout onReminderClick={() => setShowReminder(true)}>
               <ShareReport />
             </Layout>
           }
         />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />}/>
+        <Route path="/signup" element={<SignupPage />} />
+
+        <Route
+          path="/profile"
+          element={
+            <Layout onReminderClick={() => setShowReminder(true)}>
+              <Profile />
+            </Layout>
+          }
+        />
       </Routes>
-       {/* GLOBAL MODAL */}
+      {/* GLOBAL MODAL */}
       <ReminderModal
         isOpen={showReminder}
         onClose={() => setShowReminder(false)}
@@ -61,8 +71,7 @@ function App() {
           console.log("Reminder saved:", data);
           setShowReminder(false);
         }}
-        />
-
+      />
     </BrowserRouter>
   );
 }

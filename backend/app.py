@@ -757,7 +757,94 @@ def get_user_meetings(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-    
+# profile page 
+@app.route("/profile/<int:user_id>", methods=["GET"])
+def get_profile(user_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    # 1) User
+    cur.execute("SELECT name, email FROM users WHERE user_id = %s", (user_id,))
+    user = cur.fetchone()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # 2) Join summaries + meetings
+    cur.execute("""
+        SELECT 
+            s.key_points,
+            s.action_items,
+            s.created_at AS summary_created,
+            m.created_at AS meeting_created
+        FROM summaries s
+        JOIN meetings m ON s.meeting_id = m.meeting_id
+        WHERE m.user_id = %s
+    """, (user_id,))
+    rows = cur.fetchall()
+
+    total_key_points = 0
+    total_action_items = 0
+
+    # 🔥 collect diffs (seconds)
+    diffs = []
+
+    for key_points, action_items, summary_created, meeting_created in rows:
+        if key_points:
+            total_key_points += len(key_points)
+
+        if action_items:
+            total_action_items += len(action_items)
+
+        if meeting_created and summary_created:
+            diff = (summary_created - meeting_created).total_seconds()
+            diffs.append(diff)
+
+    # 🔥 MEDIAN instead of mean (more stable)
+    diffs.sort()
+    n = len(diffs)
+
+    if n == 0:
+        avg_time = 0
+    else:
+        mid = n // 2
+        if n % 2 == 1:
+            avg_time = diffs[mid]
+        else:
+            avg_time = (diffs[mid - 1] + diffs[mid]) / 2
+
+    avg_time = round(avg_time, 3)  # keep precision for ms display
+
+    conn.close()
+
+    return jsonify({
+        "name": user[0],
+        "email": user[1],
+        "meetings": len(rows),
+        "key_points": total_key_points,
+        "action_items": total_action_items,
+        "avg_time": avg_time
+    })
+#edit profile
+@app.route("/update-profile/<int:user_id>", methods=["PUT"])
+def update_profile(user_id):
+    data = request.get_json()
+
+    name = data.get("name")
+    email = data.get("email")
+
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE users
+        SET name = %s, email = %s
+        WHERE user_id = %s
+    """, (name, email, user_id))
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Profile updated successfully"})    
 # ---------------- RUN ---------------- #
 
 if __name__ == "__main__":

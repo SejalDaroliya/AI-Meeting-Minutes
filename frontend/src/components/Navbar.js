@@ -8,7 +8,6 @@ function Navbar({ meeting_id, user_name, onReminderClick }) {
 
   return (
     <div className="navbar">
-
       {/* LEFT SIDE */}
       <div className="nav-left">
   <div className="logo-wrapper">
@@ -20,25 +19,35 @@ function Navbar({ meeting_id, user_name, onReminderClick }) {
 
       {/* RIGHT SIDE */}
       <div className="nav-right">
-
         <div className="nav-links">
           <span onClick={() => navigate("/dashboard")}>Home</span>
           <span onClick={onReminderClick}>Reminders</span>
         </div>
 
         {/* PROFILE */}
-        <div
-          className="profile"
-          onClick={() => setShowDropdown(!showDropdown)}
-        >
-          <div className="avatar">
-            {user_name?.charAt(0) || "U"}
-          </div>
+        <div className="profile" onClick={() => setShowDropdown(!showDropdown)}>
+          <div className="avatar">{user_name?.charAt(0) || "U"}</div>
 
           {showDropdown && (
             <div className="dropdown">
-              <div className="dropdown-item">👤 Profile</div>
-              <div className="dropdown-item">⚙️ Settings</div>
+              <div
+                className="dropdown-item"
+                onClick={() => {
+                  navigate("/profile");
+                  setShowDropdown(false); // closes dropdown
+                }}
+              >
+                👤 Profile
+              </div>
+              <div
+                className="dropdown-item"
+                onClick={() => {
+                  navigate("/settings"); // or remove if not used
+                  setShowDropdown(false);
+                }}
+              >
+                ⚙️ Settings
+              </div>
               <div
                 className="dropdown-item"
                 onClick={() => {
@@ -51,7 +60,6 @@ function Navbar({ meeting_id, user_name, onReminderClick }) {
             </div>
           )}
         </div>
-
       </div>
     </div>
   );
