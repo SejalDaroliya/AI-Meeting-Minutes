@@ -1,0 +1,183 @@
+/* ===== PAGE ===== */
+.profile-page {
+  padding: 20px 15px;   /* ↓ reduced top space */
+  background: linear-gradient(to bottom right, #f5f3ff, #ede9fe);
+  min-height: 100vh;
+}
+
+/* ===== TITLE ===== */
+.profile-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.profile-subtitle {
+  color: #666;
+  margin-bottom: 18px;  /* ↓ reduced */
+}
+
+/* ===== CARD ===== */
+.profile-card {
+  max-width: 520px;
+  margin: auto;
+  background: white;
+  border-radius: 18px;
+  padding: 20px 18px;   /* 🔥 key height reduction */
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.4s ease-in;
+}
+
+/* ===== AVATAR ===== */
+.profile-avatar {
+  width: 70px;          /* ↓ smaller */
+  height: 70px;
+  margin: auto;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+}
+
+/* ===== EDIT BUTTON ===== */
+.edit-btn {
+  margin-top: 10px;     /* ↓ reduced */
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #7c3aed, #5b21b6);
+  color: white;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.edit-btn:hover {
+  transform: scale(1.05);
+}
+
+/* ===== USER INFO ===== */
+.profile-card h2 {
+  margin-top: 12px;
+  font-size: 20px;
+}
+
+.user-email {
+  color: #666;
+  margin-bottom: 12px;  /* ↓ reduced */
+  font-size: 14px;
+}
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;           /* ↓ reduced */
+  margin-top: 12px;
+}
+
+/* ===== STAT CARD ===== */
+.stat-card {
+  background: #ede9fe;
+  padding: 14px;       /* 🔥 smaller height */
+  border-radius: 14px;
+  text-align: center;
+  transition: 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(124, 58, 237, 0.15);
+}
+
+/* ===== STAT TEXT ===== */
+.stat-card h3 {
+  color: #5b21b6;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.stat-card p {
+  font-size: 12px;
+  margin-top: 4px;
+  color: #555;
+}
+
+/* ===== EDIT FORM ===== */
+.edit-form input {
+  width: 100%;
+  margin: 6px 0;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.edit-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.edit-actions button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.edit-actions button:first-child {
+  background: #7c3aed;
+  color: white;
+}
+
+.edit-actions button:last-child {
+  background: #e5e7eb;
+}
+
+/* ===== ANIMATION ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+
+  .profile-card {
+    padding: 18px 12px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 20px;
+  }
+
+  .stat-card h3 {
+    font-size: 20px;
+  }
+}
+  .profile-card {
+  animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
