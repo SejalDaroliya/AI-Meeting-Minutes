@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "../styles/ProfilePage.css";
+import { useLoader } from "../context/LoaderContext";
 
 const ProfilePage = () => {
   const [data, setData] = useState(null);
@@ -7,14 +8,17 @@ const ProfilePage = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "" });
+  const BASE_URL = process.env.REACT_APP_API_URL;
 
   const formatTime = (t) => {
     if (!t || t === 0) return "Instant";
     if (t < 1) return `${Math.round(t * 1000)} ms`;
     return `${t}s`;
   };
+  const { showLoader, hideLoader } = useLoader();
 
   useEffect(() => {
+  const fetchProfile = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!user) {
@@ -24,20 +28,30 @@ const ProfilePage = () => {
 
     const userId = user.user_id || user.id;
 
-    fetch(`http://localhost:5000/profile/${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) setError(data.error);
-        else {
-          setData(data);
-          setFormData({
-            name: data.name,
-            email: data.email,
-          });
-        }
-      })
-      .catch(() => setError("Failed to load profile"));
-  }, []);
+    showLoader();
+
+    try {
+      const res = await fetch(`${BASE_URL}/profile/${userId}`);
+      const data = await res.json();
+
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setData(data);
+        setFormData({
+          name: data.name,
+          email: data.email,
+        });
+      }
+    } catch (err) {
+      setError("Failed to load profile");
+    } finally {
+      hideLoader();
+    }
+  };
+
+  fetchProfile();
+}, [BASE_URL, showLoader, hideLoader]); // ✅ FIXED
 
   const handleChange = (e) => {
     setFormData({
@@ -50,7 +64,7 @@ const ProfilePage = () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const userId = user.user_id || user.id;
 
-    fetch(`http://localhost:5000/update-profile/${userId}`, {
+    fetch(`${BASE_URL}/update-profile/${userId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

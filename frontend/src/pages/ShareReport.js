@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import "../styles/ShareReport.css";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useLoader } from "../context/LoaderContext";
 
 function ShareReport() {
   const newItemRef = useRef(null);
@@ -29,6 +30,7 @@ function ShareReport() {
   const [others, setOthers] = useState([]);
   const [selectedEmails, setSelectedEmails] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+   const { showLoader, hideLoader } = useLoader();
   // const [report, setReport] = useState(null);
   const BASE_URL = process.env.REACT_APP_API_URL;
 
@@ -43,6 +45,15 @@ function ShareReport() {
     key_points: [],
     action_items: [],
   });
+useEffect(() => {
+  showLoader();
+
+  const timer = setTimeout(() => {
+    hideLoader();
+  }, 500);
+
+  return () => clearTimeout(timer);
+}, [showLoader, hideLoader]);
 
   const fetchRecipients = useCallback(async () => {
     if (!meetingId) {
@@ -106,14 +117,14 @@ function ShareReport() {
       prev.includes(email) ? prev.filter((e) => e !== email) : [...prev, email],
     );
   };
-
-  const handleSendEmail = async () => {
+const handleSendEmail = async () => {
   if (selectedEmails.length === 0) {
     toast.error("Please select at least one recipient");
     return;
   }
 
   setSending(true);
+  showLoader(); // ✅ START GLOBAL LOADER
 
   try {
     const response = await fetch(`${BASE_URL}/send-email`, {
@@ -138,9 +149,10 @@ function ShareReport() {
 
   } catch (error) {
     toast.error("Server error. Try again.");
+  } finally {
+    setSending(false);
+    hideLoader(); // ✅ ALWAYS STOP LOADER
   }
-
-  setSending(false);
 };
 
   const downloadPDF = () => {

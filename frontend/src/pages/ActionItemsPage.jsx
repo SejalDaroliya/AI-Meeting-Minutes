@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/MeetingPage.css";
-
+import { useLoader } from "../context/LoaderContext";
 function ActionItemsPage() {
   const navigate = useNavigate();
   const BASE_URL = process.env.REACT_APP_API_URL;
@@ -11,15 +11,30 @@ function ActionItemsPage() {
   const [filter, setFilter] = useState("all");
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
+  const { showLoader, hideLoader } = useLoader();
 
   useEffect(() => {
+  const fetchActions = async () => {
     if (!storedUser?.user_id) return;
 
-    fetch(`${BASE_URL}/action-items/${storedUser.user_id}`)
-      .then((res) => res.json())
-      .then((data) => setMeetings(data.meetings || []))
-      .catch((err) => console.error(err));
-  }, [BASE_URL, storedUser?.user_id]);
+    showLoader(); // 👈 show loader when page loads
+
+    try {
+      const res = await fetch(
+        `${BASE_URL}/action-items/${storedUser.user_id}`
+      );
+      const data = await res.json();
+
+      setMeetings(data.meetings || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      hideLoader(); // 👈 hide when API finishes
+    }
+  };
+
+  fetchActions();
+}, [BASE_URL, storedUser?.user_id, showLoader, hideLoader]);
 
   const toggleMeeting = (meetingId) => {
     setOpenMeeting(openMeeting === meetingId ? null : meetingId);
