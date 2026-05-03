@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Navbar.css";
 
-function Navbar({ meeting_id, user_name, onReminderClick }) {
+function Navbar({ meeting_id, user_name }) {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -10,22 +10,32 @@ function Navbar({ meeting_id, user_name, onReminderClick }) {
     <div className="navbar">
       {/* LEFT SIDE */}
       <div className="nav-left">
-  <div className="logo-wrapper">
-    <img src="/logo.png" alt="logo" className="logo-img" />
-    <span className="logo-text">MeetPilot <span className="logo-ai">AI</span></span>
-  </div>
-  <p className="tagline">Transform conversations into smart summaries instantly.</p>
-</div>
+        <div className="logo-wrapper" onClick={() => navigate("/dashboard")}>
+          <img src="/logo.png" alt="logo" className="logo-img" />
+          <span className="logo-text">
+            MeetPilot <span className="logo-ai">AI</span>
+          </span>
+        </div>
+        <p className="tagline">
+          Transform conversations into smart summaries instantly.
+        </p>
+      </div>
 
       {/* RIGHT SIDE */}
       <div className="nav-right">
         <div className="nav-links">
           <span onClick={() => navigate("/dashboard")}>Home</span>
-          <span onClick={onReminderClick}>Reminders</span>
+          <span onClick={() => navigate("/meetings")}>Meetings</span>
+          <span onClick={() => navigate("/live-recording")}>Record/Upload</span>
+          <span onClick={() => navigate("/reminders")}>Reminders</span>
+          <span onClick={() => navigate("/actions")}>Action Items</span>
         </div>
 
         {/* PROFILE */}
-        <div className="profile" onClick={() => setShowDropdown(!showDropdown)}>
+        <div
+          className="profile"
+          onClick={() => setShowDropdown(!showDropdown)}
+        >
           <div className="avatar">{user_name?.charAt(0) || "U"}</div>
 
           {showDropdown && (
@@ -34,20 +44,12 @@ function Navbar({ meeting_id, user_name, onReminderClick }) {
                 className="dropdown-item"
                 onClick={() => {
                   navigate("/profile");
-                  setShowDropdown(false); // closes dropdown
+                  setShowDropdown(false);
                 }}
               >
                 👤 Profile
               </div>
-              <div
-                className="dropdown-item"
-                onClick={() => {
-                  navigate("/settings"); // or remove if not used
-                  setShowDropdown(false);
-                }}
-              >
-                ⚙️ Settings
-              </div>
+
               <div
                 className="dropdown-item"
                 onClick={() => {

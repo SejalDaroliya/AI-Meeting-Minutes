@@ -358,3 +358,30 @@
   height: 1px;
   background: var(--border-default);
 }
+
+.password-wrapper{
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-wrapper input{
+  width: 100%;
+  padding-right: 45px;
+}
+
+.eye-icon{
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  user-select: none;
+  color: #7c3aed;
+}
+
+.eye-icon:hover{
+  opacity: 0.8;
+}

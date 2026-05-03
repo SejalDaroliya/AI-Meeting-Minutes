@@ -1,0 +1,542 @@
+/* ===== LIVE RECORDING PAGE ===== */
+.live-recording-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 50%, #ede9fe 100%);
+  padding: 2rem;
+}
+
+.back-btn {
+  background: transparent;
+  border: none;
+  color: #7c3aed;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  transition: color 0.2s ease;
+}
+
+.back-btn:hover {
+  color: #5b21b6;
+}
+
+.live-recording-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* ===== MAIN RECORDING AREA ===== */
+.recording-main {
+  width: 100%;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.recording-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.meeting-title-input {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  font-size: 1.1rem;
+  border: 2px solid #e9d5ff;
+  border-radius: 12px;
+  background: #faf5ff;
+  color: #1e1b4b;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.meeting-title-input::placeholder {
+  color: #a78bfa;
+}
+
+.meeting-title-input:focus {
+  border-color: #7c3aed;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+}
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e9d5ff, transparent);
+  margin: 1.5rem 0;
+}
+
+/* ===== MODE TOGGLE ===== */
+.mode-toggle {
+  display: flex;
+  background: #f3e8ff;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 2rem;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: transparent;
+  color: #7c3aed;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.mode-btn.active {
+  background: #ffffff;
+  color: #5b21b6;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.15);
+}
+
+.mode-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== LIVE RECORDING UI ===== */
+.live-recording-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.mic-button {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.35);
+}
+
+.mic-button:hover {
+  transform: scale(1.05);
+}
+
+.mic-button.recording {
+  animation: pulse-glow 1.5s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.35);
+  }
+  50% {
+    box-shadow: 0 8px 40px rgba(239, 68, 68, 0.55);
+  }
+}
+
+.mic-icon {
+  font-size: 2.5rem;
+  filter: brightness(0) invert(1);
+}
+
+.pulse-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid rgba(239, 68, 68, 0.5);
+  animation: pulse-ring 1.5s infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.timer {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-top: 1.5rem;
+  font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.mic-instruction {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+/* ===== WAVEFORM ===== */
+.waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 2rem;
+  height: 60px;
+}
+
+.waveform-bar {
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #7c3aed 0%, #a78bfa 100%);
+  transition: height 0.1s ease;
+}
+
+/* ===== AUDIO PREVIEW ===== */
+.audio-preview {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.audio-preview audio {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 8px;
+}
+
+/* ===== UPLOAD UI ===== */
+.upload-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.upload-area {
+  width: 100%;
+  padding: 3rem 2rem;
+  border: 2px dashed #c4b5fd;
+  border-radius: 16px;
+  background: #faf5ff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-area:hover {
+  border-color: #7c3aed;
+  background: #f3e8ff;
+}
+
+.upload-icon {
+  font-size: 3rem;
+}
+
+.upload-area p {
+  color: #5b21b6;
+  font-weight: 500;
+}
+
+.upload-area span {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.file-preview {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #f3e8ff;
+  border-radius: 10px;
+  border: 1px solid #e9d5ff;
+}
+
+.file-name {
+  color: #5b21b6;
+  font-weight: 500;
+}
+
+.file-remove {
+  background: #fecaca;
+  border: none;
+  color: #dc2626;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.file-remove:hover {
+  background: #fca5a5;
+}
+
+/* ===== GENERATE BUTTON ===== */
+.generate-btn {
+  padding: 1rem 2.5rem;
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+}
+
+.generate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+}
+
+/* ===== SIDEBAR ===== */
+.recording-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sidebar-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+}
+
+.sidebar-card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-bottom: 1.5rem;
+}
+
+.step {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.step:last-child {
+  margin-bottom: 0;
+}
+
+.step-icon {
+  width: 40px;
+  height: 40px;
+  background: #f3e8ff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.step-content h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-bottom: 0.25rem;
+}
+
+.step-content p {
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* ===== TIP CARD ===== */
+.tip-card {
+  background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #e9d5ff;
+}
+
+.tip-label {
+  background: #7c3aed;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 0.75rem;
+}
+
+.tip-card p {
+  font-size: 0.9rem;
+  color: #5b21b6;
+  line-height: 1.6;
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 1.5rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 1000;
+  animation: slideUp 0.3s ease;
+}
+
+.toast.error {
+  border-left: 4px solid #ef4444;
+}
+
+.toast.success {
+  border-left: 4px solid #10b981;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .live-recording-container {
+    grid-template-columns: 1fr;
+  }
+
+  .recording-sidebar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .live-recording-page {
+    padding: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .recording-card {
+    padding: 1.5rem;
+  }
+
+  .mode-toggle {
+    flex-direction: column;
+  }
+
+  .mode-btn {
+    width: 100%;
+  }
+
+  .recording-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .mic-button {
+    width: 80px;
+    height: 80px;
+  }
+
+  .mic-icon {
+    font-size: 2rem;
+  }
+
+  .timer {
+    font-size: 2rem;
+  }
+
+  .waveform {
+    gap: 2px;
+  }
+
+  .waveform-bar {
+    width: 3px;
+  }
+}
+
+@media (max-width: 480px) {
+  .file-preview {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .upload-area {
+    padding: 2rem 1rem;
+  }
+
+  .generate-btn {
+    width: 100%;
+  }
+}
+.transcript-box{
+  margin-top:20px;
+  width:100%;
+  background:rgba(124,58,237,0.05);
+  border:1px solid rgba(124,58,237,0.15);
+  border-radius:16px;
+  padding:18px;
+  max-height:220px;
+  overflow-y:auto;
+  text-align:left;
+}
+
+.transcript-box h3{
+  margin:0 0 10px;
+  color:#6d28d9;
+  font-size:18px;
+}
+
+.transcript-box p{
+  margin:0;
+  color:#374151;
+  line-height:1.6;
+  font-size:15px;
+}

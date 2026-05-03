@@ -5,7 +5,7 @@ function Loader() {
   return (
     <div className="loader-overlay">
       <div className="spinner"></div>
-      <p>Processing meeting... ⏳</p>
+      <p>Processing... ⏳</p>
     </div>
   );
 }

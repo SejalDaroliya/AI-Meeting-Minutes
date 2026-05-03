@@ -845,6 +845,94 @@ def update_profile(user_id):
     conn.close()
 
     return jsonify({"message": "Profile updated successfully"})    
+
+@app.route("/reminders/<int:user_id>", methods=["GET"])
+def get_reminders(user_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT 
+                mr.reminder_id,
+                mr.title,
+                mr.message,
+                mr.reminder_time,
+                mr.sent
+            FROM meeting_reminders mr
+            JOIN reminder_recipients rr 
+                ON mr.reminder_id = rr.reminder_id
+            WHERE rr.user_id = %s
+            ORDER BY mr.reminder_time DESC
+        """, (user_id,))
+
+        reminders = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "reminders": [
+                {
+                    "reminder_id": r[0],
+                    "title": r[1],
+                    "message": r[2],
+                    "reminder_time": r[3].isoformat() if r[3] else None,
+                    "sent": r[4]
+                }
+                for r in reminders
+            ]
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/action-items/<int:user_id>", methods=["GET"])
+def get_action_items(user_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT 
+                m.meeting_id,
+                m.title,
+                m.meeting_date,
+                s.action_items
+            FROM meetings m
+            JOIN summaries s ON m.meeting_id = s.meeting_id
+            WHERE m.user_id = %s
+            ORDER BY m.meeting_date DESC
+        """, (user_id,))
+
+        rows = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        grouped_items = []
+
+        for meeting_id, meeting_title, meeting_date, action_items in rows:
+            if not action_items:
+                continue
+
+            if isinstance(action_items, str):
+                try:
+                    action_items = json.loads(action_items)
+                except:
+                    action_items = []
+
+            grouped_items.append({
+                "meeting_id": meeting_id,
+                "meeting_title": meeting_title,
+                "meeting_date": meeting_date.isoformat() if meeting_date else None,
+                "tasks": action_items
+            })
+
+        return jsonify({"meetings": grouped_items})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 # ---------------- RUN ---------------- #
 
 if __name__ == "__main__":

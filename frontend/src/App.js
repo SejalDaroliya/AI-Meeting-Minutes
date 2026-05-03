@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import Profile from "./pages/ProfilePage.js";
 import Loader from "./components/Loader";
 import LandingPage from "./pages/LandingPage";
@@ -12,23 +13,28 @@ import SignupPage from "./pages/SignUpPage";
 import ShareReport from "./pages/ShareReport";
 import { useLoader } from "./context/LoaderContext";
 import Layout from "./components/Layout";
-import ReminderModal from "./components/ReminderModal";
+import MeetingsPage from "./pages/Meetings";
+import RemindersPage from "./pages/ReminderPage";
+import ActionItemsPage from "./pages/ActionItemsPage";
+import LiveRecording from "./components/LiveRecording";
 
 function App() {
   const { loading } = useLoader();
-  const [showReminder, setShowReminder] = useState(false);
+
   return (
     <BrowserRouter>
       {loading && <Loader />}
-      {/* ✅ Toast container must be inside return */}
       <ToastContainer position="top-right" autoClose={2000} />
 
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+
         <Route
           path="/dashboard"
           element={
-            <Layout onReminderClick={() => setShowReminder(true)}>
+            <Layout>
               <Dashboard />
             </Layout>
           }
@@ -37,7 +43,7 @@ function App() {
         <Route
           path="/summary"
           element={
-            <Layout onReminderClick={() => setShowReminder(true)}>
+            <Layout>
               <SummaryPage />
             </Layout>
           }
@@ -46,32 +52,57 @@ function App() {
         <Route
           path="/share-report"
           element={
-            <Layout onReminderClick={() => setShowReminder(true)}>
+            <Layout>
               <ShareReport />
             </Layout>
           }
         />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
 
         <Route
           path="/profile"
           element={
-            <Layout onReminderClick={() => setShowReminder(true)}>
+            <Layout>
               <Profile />
             </Layout>
           }
         />
+
+        <Route
+          path="/meetings"
+          element={
+            <Layout>
+              <MeetingsPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/reminders"
+          element={
+            <Layout>
+              <RemindersPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/actions"
+          element={
+            <Layout>
+              <ActionItemsPage />
+            </Layout>
+          }
+        />
+
+        <Route
+          path="/live-recording"
+          element={
+            <Layout>
+              <LiveRecording />
+            </Layout>
+          }
+        />
       </Routes>
-      {/* GLOBAL MODAL */}
-      <ReminderModal
-        isOpen={showReminder}
-        onClose={() => setShowReminder(false)}
-        onSave={(data) => {
-          console.log("Reminder saved:", data);
-          setShowReminder(false);
-        }}
-      />
     </BrowserRouter>
   );
 }
