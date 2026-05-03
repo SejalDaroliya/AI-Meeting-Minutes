@@ -141,6 +141,43 @@ const ProfilePage = () => {
           </div>
         </div>
       </div>
+<div className="activity-card">
+  <h3>Weekly Insights</h3>
+
+  <p className="activity-subtext">
+    Overview of completed vs pending action items from your meetings.
+  </p>
+
+  <div className="bar-graph">
+
+    {/* DONE */}
+    <div className="bar-column">
+      <div className="bar-track">
+        <div
+          className="bar-fill done"
+          style={{ height: `${data.done}px` }}
+        ></div>
+      </div>
+
+      <span className="bar-count">{data.done}</span>
+      <p>Done</p>
+    </div>
+
+    {/* PENDING */}
+    <div className="bar-column">
+      <div className="bar-track">
+        <div
+          className="bar-fill pending"
+          style={{ height: `${data.pending}px` }}
+        ></div>
+      </div>
+
+      <span className="bar-count">{data.pending}</span>
+      <p>Pending</p>
+    </div>
+
+  </div>
+</div>
     </div>
   );
 };

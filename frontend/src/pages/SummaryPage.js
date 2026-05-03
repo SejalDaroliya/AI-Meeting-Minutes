@@ -34,6 +34,7 @@ function SummaryPage() {
   const timeTaken = data?.processing_time || null;
   const meetingTitle = data?.title || "Untitled Meeting";
   const meetingDate = data?.date || data?.created_at || null;
+  const [trackedActions, setTrackedActions] = useState([]);
 
   // ✅ LOAD VOICES
   useEffect(() => {
@@ -109,6 +110,45 @@ function SummaryPage() {
     if (isNaN(d.getTime())) return "";
     return d.toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
   };
+
+  useEffect(() => {
+  const fetchTrackedActions = async () => {
+    if (!meetingId) return;
+
+    try {
+      const res = await fetch(`${BASE_URL}/meeting-actions/${meetingId}`);
+      const result = await res.json();
+
+      if (res.ok) {
+        setTrackedActions(result.actions || []);
+      }
+    } catch (err) {
+      console.error("Tracked actions fetch failed:", err);
+    }
+  };
+
+  fetchTrackedActions();
+}, [meetingId, BASE_URL]);
+
+const updateActionStatus = async (actionId, newStatus) => {
+  try {
+    const res = await fetch(`${BASE_URL}/update-action-status/${actionId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }),
+    });
+
+    if (res.ok) {
+      setTrackedActions((prev) =>
+        prev.map((a) =>
+          a.action_id === actionId ? { ...a, status: newStatus } : a
+        )
+      );
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   return (
     <div className="summary-page">
@@ -264,24 +304,54 @@ function SummaryPage() {
 
         {/* ACTIONS TAB */}
         {activeTab === "actions" && (
-          <div className="card mauve-card">
-            <div className="card-label">Tasks</div>
-            <h3 className="card-title" style={{ marginBottom: "20px" }}>Action Items</h3>
-            {actions.length ? (
-              <div className="actions-list">
-                {actions.map((item, idx) => (
-                  <div key={idx} className="action-item-row">
-                    <div className="action-num">{idx + 1}</div>
-                    <div className="action-text">{item}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="empty-msg">No action items found.</p>
-            )}
-          </div>
-        )}
+  <div className="card mauve-card enhanced-actions-card">
+    <div className="card-label">Tasks</div>
+    <h3 className="card-title" style={{ marginBottom: "20px" }}>
+      Action Items Progress
+    </h3>
 
+    {trackedActions.length ? (
+      <div className="tracked-actions-list">
+        {trackedActions.map((item, idx) => (
+          <div key={item.action_id} className="tracked-action-card">
+            <div className="tracked-header">
+              <div className="action-num">{idx + 1}</div>
+              <span className={`status-badge ${item.status.toLowerCase().replace(" ", "-")}`}>
+                {item.status}
+              </span>
+            </div>
+
+            <div className="action-text">{item.task}</div>
+            <label className="done-checkbox">
+  <input
+    type="checkbox"
+    checked={item.status === "Done"}
+    onChange={(e) =>
+      updateActionStatus(
+        item.action_id,
+        e.target.checked ? "Done" : "Pending"
+      )
+    }
+  />
+  <span>Mark as done</span>
+</label>
+          </div>
+        ))}
+      </div>
+    ) : actions.length ? (
+      <div className="actions-list">
+        {actions.map((item, idx) => (
+          <div key={idx} className="action-item-row">
+            <div className="action-num">{idx + 1}</div>
+            <div className="action-text">{item}</div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p className="empty-msg">No action items found.</p>
+    )}
+  </div>
+)}
         {/* REPORT TAB */}
         {activeTab === "report" && (
           <div className="card report-card">

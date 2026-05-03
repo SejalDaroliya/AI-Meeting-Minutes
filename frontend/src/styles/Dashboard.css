@@ -634,7 +634,7 @@
     padding:14px;
   }
 
-  .navbar{
+  /* .navbar{
     flex-direction:column;
     align-items:flex-start;
   }
@@ -645,5 +645,5 @@
 
   .hero-text h1{
     font-size:28px;
-  }
+  } */
 }

@@ -25,6 +25,8 @@ import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 from datetime import datetime
 import pytz
+from collections import defaultdict
+from datetime import datetime, timedelta
 
 ist = pytz.timezone('Asia/Kolkata')
 utc = pytz.utc
@@ -250,6 +252,18 @@ def process_audio():
             json.dumps(model_actions),
             meeting_id
         ))
+        # ALSO SAVE TO TRACKABLE ACTION ITEMS TABLE
+        for item in model_actions:
+            if isinstance(item, dict):
+                task_text = item.get("task", "")
+            else:
+                task_text = str(item)
+
+            if task_text.strip():
+                cur.execute("""
+                    INSERT INTO action_items (meeting_id, task, status)
+                    VALUES (%s, %s, %s)
+                    """, (meeting_id, task_text, "Pending"))
 
         conn.commit()
 
@@ -766,16 +780,15 @@ def get_profile(user_id):
     # 1) User
     cur.execute("SELECT name, email FROM users WHERE user_id = %s", (user_id,))
     user = cur.fetchone()
+
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    # 2) Join summaries + meetings
+    # 2) Summaries + stats
     cur.execute("""
         SELECT 
             s.key_points,
-            s.action_items,
-            s.created_at AS summary_created,
-            m.created_at AS meeting_created
+            s.action_items
         FROM summaries s
         JOIN meetings m ON s.meeting_id = m.meeting_id
         WHERE m.user_id = %s
@@ -785,36 +798,87 @@ def get_profile(user_id):
     total_key_points = 0
     total_action_items = 0
 
-    # 🔥 collect diffs (seconds)
-    diffs = []
+    for key_points, action_items in rows:
 
-    for key_points, action_items, summary_created, meeting_created in rows:
+        # key points
         if key_points:
+            if isinstance(key_points, str):
+                try:
+                    key_points = json.loads(key_points)
+                except:
+                    key_points = []
+
             total_key_points += len(key_points)
 
+        # action items
         if action_items:
+            if isinstance(action_items, str):
+                try:
+                    action_items = json.loads(action_items)
+                except:
+                    action_items = []
+
             total_action_items += len(action_items)
 
-        if meeting_created and summary_created:
-            diff = (summary_created - meeting_created).total_seconds()
-            diffs.append(diff)
+    # 3) Avg processing time (same as stats API)
+    cur.execute("""
+        SELECT ROUND(AVG(NULLIF(processing_time, 0))::numeric, 1)
+        FROM meetings
+        WHERE user_id = %s AND processing_time IS NOT NULL
+    """, (user_id,))
 
-    # 🔥 MEDIAN instead of mean (more stable)
-    diffs.sort()
-    n = len(diffs)
+    result = cur.fetchone()[0]
+    avg_time = float(result) if result else 0
 
-    if n == 0:
-        avg_time = 0
-    else:
-        mid = n // 2
-        if n % 2 == 1:
-            avg_time = diffs[mid]
-        else:
-            avg_time = (diffs[mid - 1] + diffs[mid]) / 2
+    # 4) 🔥 ACTIVITY GRAPH (last 7 days)
+    cur.execute("""
+        SELECT created_at
+        FROM meetings
+        WHERE user_id = %s
+    """, (user_id,))
 
-    avg_time = round(avg_time, 3)  # keep precision for ms display
+    meetings = cur.fetchall()
 
-    conn.close()
+    activity_map = defaultdict(int)
+
+    for (created_at,) in meetings:
+        if created_at:
+            day = created_at.date().isoformat()
+            activity_map[day] += 1
+
+    today = datetime.now().date()
+
+    activity = []
+    for i in range(29, -1, -1):
+        day = today - timedelta(days=i)
+        day_str = day.isoformat()
+
+        activity.append({
+            "date": day_str,
+            "count": activity_map.get(day_str, 0)
+        })
+    # 4) DONE vs PENDING from real table
+    cur.execute("""
+        SELECT status
+        FROM action_items ai
+        JOIN meetings m ON ai.meeting_id = m.meeting_id
+        WHERE m.user_id = %s
+        """, (user_id,))
+
+    rows = cur.fetchall()
+
+    done = 0
+    pending = 0
+
+    for (status,) in rows:
+        if status:
+            status = status.lower()
+
+            if status == "done":
+                done += 1
+            elif status == "pending":
+                pending += 1
+        conn.close()
 
     return jsonify({
         "name": user[0],
@@ -822,7 +886,10 @@ def get_profile(user_id):
         "meetings": len(rows),
         "key_points": total_key_points,
         "action_items": total_action_items,
-        "avg_time": avg_time
+        "avg_time": avg_time,
+        "activity": activity,
+        "done" : done,
+        "pending" : pending   # 🔥 NEW FIELD
     })
 #edit profile
 @app.route("/update-profile/<int:user_id>", methods=["PUT"])
@@ -893,43 +960,117 @@ def get_action_items(user_id):
         conn = get_db_connection()
         cur = conn.cursor()
 
+        # 1. Get meetings
         cur.execute("""
-            SELECT 
-                m.meeting_id,
-                m.title,
-                m.meeting_date,
-                s.action_items
-            FROM meetings m
-            JOIN summaries s ON m.meeting_id = s.meeting_id
-            WHERE m.user_id = %s
-            ORDER BY m.meeting_date DESC
+            SELECT meeting_id, title, meeting_date
+            FROM meetings
+            WHERE user_id = %s
+            ORDER BY meeting_date DESC
         """, (user_id,))
+
+        meetings = cur.fetchall()
+
+        result = []
+
+        for meeting_id, title, meeting_date in meetings:
+
+            # 2. Get action items per meeting
+            cur.execute("""
+                SELECT task, status
+                FROM action_items
+                WHERE meeting_id = %s
+            """, (meeting_id,))
+
+            actions = cur.fetchall()
+
+            tasks = [
+                {"task": t[0], "status": t[1]}
+                for t in actions
+            ]
+
+            result.append({
+                "meeting_id": meeting_id,
+                "meeting_title": title,
+                "meeting_date": meeting_date.isoformat() if meeting_date else None,
+                "tasks": tasks
+            })
+
+        cur.close()
+        conn.close()
+
+        return jsonify({"meetings": result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/meeting-actions/<int:meeting_id>", methods=["GET"])
+def get_meeting_actions(meeting_id):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT action_id, task, status, owner, created_at, updated_at
+            FROM action_items
+            WHERE meeting_id = %s
+            ORDER BY action_id
+        """, (meeting_id,))
 
         rows = cur.fetchall()
 
         cur.close()
         conn.close()
 
-        grouped_items = []
+        return jsonify({
+            "actions": [
+                {
+                    "action_id": r[0],
+                    "task": r[1],
+                    "status": r[2],
+                    "owner": r[3],
+                    "created_at": r[4].isoformat() if r[4] else None,
+                    "updated_at": r[5].isoformat() if r[5] else None
+                }
+                for r in rows
+            ]
+        })
 
-        for meeting_id, meeting_title, meeting_date, action_items in rows:
-            if not action_items:
-                continue
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/update-action-status/<int:action_id>", methods=["PUT"])
+def update_action_status(action_id):
+    try:
+        data = request.json
+        status = data.get("status")
 
-            if isinstance(action_items, str):
-                try:
-                    action_items = json.loads(action_items)
-                except:
-                    action_items = []
+        if status:
+            status = status.strip()   # 🔥 removes hidden spaces
 
-            grouped_items.append({
-                "meeting_id": meeting_id,
-                "meeting_title": meeting_title,
-                "meeting_date": meeting_date.isoformat() if meeting_date else None,
-                "tasks": action_items
-            })
+        allowed = ["Pending", "Done"]
 
-        return jsonify({"meetings": grouped_items})
+        if status not in allowed:
+            return jsonify({
+                "error": "Invalid status",
+                "received": status
+            }), 400
+
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            UPDATE action_items
+            SET status = %s,
+                updated_at = NOW()
+            WHERE action_id = %s
+        """, (status, action_id))
+
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+        return jsonify({"message": "Status updated successfully"})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

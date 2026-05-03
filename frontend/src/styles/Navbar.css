@@ -19,7 +19,7 @@
 
   /* ✅ IMPORTANT FIXS */
   position: relative;
-  z-index: 9999;
+  z-index: 1000;
 }
 
 /* LOGO */
@@ -235,3 +235,4 @@
     font-size: 13px;
   }
 }
+

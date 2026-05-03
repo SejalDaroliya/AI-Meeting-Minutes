@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import "../styles/ShareReport.css";
 import { useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function ShareReport() {
   const newItemRef = useRef(null);
@@ -107,42 +108,40 @@ function ShareReport() {
   };
 
   const handleSendEmail = async () => {
-    if (selectedEmails.length === 0) {
-      setStatus("Please select at least one recipient");
-      return;
+  if (selectedEmails.length === 0) {
+    toast.error("Please select at least one recipient");
+    return;
+  }
+
+  setSending(true);
+
+  try {
+    const response = await fetch(`${BASE_URL}/send-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        meeting_id: meetingId,
+        selected_emails: selectedEmails,
+        report: editableReport,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      toast.success(data.message || "Email sent successfully 🚀");
+    } else {
+      toast.error(data.error || "Failed to send email");
     }
 
-    setSending(true); // 🔥 START LOADING
+  } catch (error) {
+    toast.error("Server error. Try again.");
+  }
 
-    try {
-      const response = await fetch(`${BASE_URL}/send-email`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          meeting_id: meetingId,
-          selected_emails: selectedEmails,
-          report: editableReport,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setStatus(data.message || "Email sent successfully");
-      } else {
-        setStatus(data.error || "Failed to send email");
-      }
-
-      setTimeout(() => setStatus(""), 3000);
-    } catch (error) {
-      setStatus("Server error. Try again.");
-      setTimeout(() => setStatus(""), 3000);
-    }
-
-    setSending(false); // 🔥 STOP LOADING
-  };
+  setSending(false);
+};
 
   const downloadPDF = () => {
     window.print();

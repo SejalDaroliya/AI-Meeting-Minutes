@@ -156,3 +156,75 @@
   cursor: pointer;
   font-weight: 500;
 }
+
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filter-bar button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  background: #eee;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  align-items: center;
+}
+
+.status-pill {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.status-pill.done {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-pill.pending {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.filter-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.filter-bar button {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #7c3aed;
+  background: #ede9fe;
+  color: #4c1d95;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.filter-bar button:hover {
+  background: #7c3aed;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.active-filter {
+  background: #111;
+  color: white;
+  border-color: #111;
+}

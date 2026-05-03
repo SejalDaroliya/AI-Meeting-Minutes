@@ -8,6 +8,7 @@ function ActionItemsPage() {
 
   const [meetings, setMeetings] = useState([]);
   const [openMeeting, setOpenMeeting] = useState(null);
+  const [filter, setFilter] = useState("all");
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
 
@@ -24,6 +25,20 @@ function ActionItemsPage() {
     setOpenMeeting(openMeeting === meetingId ? null : meetingId);
   };
 
+  // 🔥 FILTER LOGIC (DOES NOT BREAK GROUPING)
+  const getFilteredTasks = (tasks) => {
+    if (filter === "all") return tasks;
+
+    return tasks.filter((t) => {
+      const status =
+        typeof t === "string"
+          ? "pending" // fallback if backend has no status
+          : (t.status || "pending").toLowerCase();
+
+      return status === filter;
+    });
+  };
+
   return (
     <div className="page-shell">
       <nav className="page-navbar">
@@ -37,10 +52,34 @@ function ActionItemsPage() {
         <h1>Action Items</h1>
         <p>Manage all tasks extracted from your meetings.</p>
 
+        {/* 🔥 FILTER BUTTONS */}
+        <div className="filter-bar">
+          <button
+            className={filter === "all" ? "active-filter" : ""}
+            onClick={() => setFilter("all")}
+          >
+            All
+          </button>
+          <button
+            className={filter === "all" ? "active-filter" : ""}
+            onClick={() => setFilter("pending")}
+          >
+            Pending
+          </button>
+          <button
+            className={filter === "all" ? "active-filter" : ""}
+            onClick={() => setFilter("done")}
+          >
+            Done
+          </button>
+        </div>
+
         <div className="card-list">
           {meetings.length > 0 ? (
             meetings.map((meeting) => (
               <div key={meeting.meeting_id} className="meeting-group">
+
+                {/* HEADER */}
                 <div
                   className="meeting-header"
                   onClick={() => toggleMeeting(meeting.meeting_id)}
@@ -51,16 +90,36 @@ function ActionItemsPage() {
                       {new Date(meeting.meeting_date).toLocaleDateString()}
                     </span>
                   </div>
+
                   <span>
                     {openMeeting === meeting.meeting_id ? "▲" : "▼"}
                   </span>
                 </div>
 
+                {/* TASK LIST */}
                 {openMeeting === meeting.meeting_id && (
                   <ul className="task-list">
-                    {meeting.tasks.map((task, idx) => (
-                      <li key={idx}>{task}</li>
-                    ))}
+                    {getFilteredTasks(meeting.tasks).map((task, idx) => {
+                      const isObject = typeof task === "object";
+
+                      const taskText = isObject ? task.task : task;
+                      const status = isObject ? task.status : "Pending";
+
+                      return (
+                        <li key={idx} className="task-item">
+
+                          <span>{taskText}</span>
+
+                          <span
+                            className={`status-pill ${status.toLowerCase()
+                              }`}
+                          >
+                            {status}
+                          </span>
+
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>
