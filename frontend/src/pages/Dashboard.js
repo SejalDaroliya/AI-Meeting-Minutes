@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import "../styles/Dashboard.css";
 import { useNavigate } from "react-router-dom";
-import Reminder from "../components/Reminder";
+// import Reminder from "../components/Reminder";
 import { useLoader } from "../context/LoaderContext";
-import LiveMicModal from "../components/LiveMicModal";
+import LiveMicModal from "../components/LiveRecording";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -13,7 +13,6 @@ function Dashboard() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [meetingTitle, setMeetingTitle] = useState("");
 
-  const [showReminder, setShowReminder] = useState(false);
   const storedUser = JSON.parse(localStorage.getItem("user"));
 
   // 🎤 Recording states
@@ -234,8 +233,8 @@ useEffect(() => {
 
   // 🎤 MIC CLICK
   const handleMicClick = () => {
-    setShowMicModal(true);
-  };
+  navigate("/live-recording");
+};
 
   return (
     <div className="dashboard">
@@ -316,58 +315,62 @@ useEffect(() => {
 
         {/* Illustration */}
         <div className="hero-illustration">
-        <div className="right-panel">
-
-  <div className="right-panel-header">
-    <img src="/logo.png" alt="MeetPilot AI" className="panel-logo" />
-    <div>
-      <h3 className="panel-title">MeetPilot AI</h3>
-      <span className="panel-tag">Who it's built for</span>
-    </div>
+        <div className="right-panel-header">
+  <img src="/logo.png" alt="MeetPilot AI" className="panel-logo" />
+  <div>
+    <h3 className="panel-title">MeetPilot AI</h3>
+    <span className="panel-tag">AI Workflow Process</span>
   </div>
+</div>
 
-  {/* HERO IMAGE */}
-  <img src="/hero_person.png" alt="hero" className="panel-hero-img" />
+{/* HERO IMAGE */}
+<img src="/hero_person.png" alt="workflow" className="panel-hero-img" />
 
-  <div className="panel-persona">
-    <div className="persona-icon">👔</div>
-    <div>
-      <h4>Team Leads & Managers</h4>
-      <p>Auto-send action items to members who missed the meeting — no follow-up needed.</p>
-    </div>
+<div className="panel-persona">
+  <div className="persona-icon">📂</div>
+  <div>
+    <h4>Upload Meeting File</h4>
+    <p>
+      Add your recorded meeting audio or transcript file securely into the platform.
+    </p>
   </div>
+</div>
 
-  <div className="panel-persona">
-    <div className="persona-icon">🧑‍💻</div>
-    <div>
-      <h4>Remote Workers</h4>
-      <p>Stay aligned across time zones without sitting through every recorded call.</p>
-    </div>
+<div className="panel-persona">
+  <div className="persona-icon">📝</div>
+  <div>
+    <h4>Transcript Generated</h4>
+    <p>
+      AI converts your meeting into structured, speaker-labeled text instantly.
+    </p>
   </div>
+</div>
 
-  <div className="panel-persona">
-    <div className="persona-icon">📊</div>
-    <div>
-      <h4>Consultants & Analysts</h4>
-      <p>Capture client decisions and deliverables instantly — straight from the conversation.</p>
-    </div>
+<div className="panel-persona">
+  <div className="persona-icon">🧠</div>
+  <div>
+    <h4>Summary + Insights</h4>
+    <p>
+      Key points, action items, and decisions are automatically extracted.
+    </p>
   </div>
+</div>
 
-  <div className="panel-persona">
-    <div className="persona-icon">🎓</div>
-    <div>
-      <h4>Educators & Coaches</h4>
-      <p>Turn every faculty and staff meeting into clear notes for getting reference anytime.</p>
-    </div>
+<div className="panel-persona">
+  <div className="persona-icon">📑</div>
+  <div>
+    <h4>Final Report Ready</h4>
+    <p>
+      Receive a polished report for sharing, tracking, and future reference.
+    </p>
   </div>
+</div>
 
-  <div className="panel-footer">
-    <span className="panel-stat">🏢 Built for teams of all sizes</span>
-    <span className="panel-dot"></span>
-    <span className="panel-stat">⚡ Results in seconds</span>
-  </div>
-
-       </div>
+<div className="panel-footer">
+  <span className="panel-stat">⚡ End-to-end automation</span>
+  <span className="panel-dot"></span>
+  <span className="panel-stat">🚀 Results in seconds</span>
+</div>
        </div>
       </div>
 
@@ -409,11 +412,34 @@ useEffect(() => {
 </div>
 
       {/* 🔥 DYNAMIC RECENT MEETINGS */}
-      <div className="recent">
-        <h2>Recent Meetings</h2>
+      <div className="recent-layout">
+  {/* LEFT SIDE - RECENT MEETINGS */}
+  <div className="recent">
+  <div className="recent-header">
+  <h2>Recent Meetings</h2>
+  <button
+    className="view-all-btn"
+    onClick={() => navigate("/meetings")}
+  >
+    View All →
+  </button>
+</div>
 
-        {recentMeetings.length === 0 ? (
-  <p>No recent meetings</p>
+    {recentMeetings.length === 0 ? (
+  <div className="empty-state">
+    <div className="empty-icon">🖥️</div>
+    <h3>No meetings yet</h3>
+    <p>
+      Record or upload your first meeting and we'll generate
+      a full summary in seconds.
+    </p>
+    <button
+      className="empty-action-btn"
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+    >
+      Start a Meeting
+    </button>
+  </div>
 ) : (
   recentMeetings.map((meeting) => (
     <div key={meeting.meeting_id} className="meeting">
@@ -434,9 +460,12 @@ useEffect(() => {
           </span>
         </div>
       </div>
+
       <button
         onClick={() =>
-          navigate("/summary", { state: { meeting_id: meeting.meeting_id } })
+          navigate("/summary", {
+            state: { meeting_id: meeting.meeting_id },
+          })
         }
       >
         View
@@ -444,7 +473,33 @@ useEffect(() => {
     </div>
   ))
 )}
+  </div>
+
+  {/* RIGHT SIDE - SIDEBAR */}
+  <div className="insights-sidebar">
+    <div className="insight-card">
+      <div className="insight-icon">⏰</div>
+      <div>
+        <h2>Reminders</h2>
+        <p>Stay on top of post-meeting commitments and deadlines.</p>
       </div>
+      <button onClick={() => navigate("/reminders")}>
+  View reminders
+</button>
+    </div>
+
+    <div className="insight-card">
+      <div className="insight-icon">📌</div>
+      <div>
+        <h2>Action Items</h2>
+        <p>{stats.actions} tasks across all meetings tracked in one place.</p>
+      </div>
+      <button onClick={() => navigate("/actions")}>
+  View all tasks
+</button>
+    </div>
+  </div>
+</div>
 
       {/* MODALS */}
       {showMicModal && (
@@ -457,15 +512,6 @@ useEffect(() => {
           onClose={() => setShowMicModal(false)}
         />
       )}
-
-      {showReminder && (
-        <Reminder
-          meetingId={null}
-          userId={storedUser?.user_id}
-          onClose={() => setShowReminder(false)}
-        />
-      )}
-
       {toast.show && (
         <div className={`toast ${toast.type}`}>
           <span className="toast-icon">{toast.type === "error" ? "❌" : "✅"}</span>

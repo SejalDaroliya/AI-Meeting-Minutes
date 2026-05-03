@@ -243,3 +243,29 @@
   font-size: 14px;
   cursor: pointer;
 }
+
+.modal-overlay {
+  background: rgba(0,0,0,0.4);
+}
+
+.modal-box {
+  background: #f9f7ff;
+  border-radius: 20px;
+  padding: 25px;
+}
+
+.modal-input,
+.modal-textarea {
+  border: 1px solid #d6ccff;
+  border-radius: 10px;
+}
+
+.btn-primary {
+  background: #7c3aed;
+  color: white;
+}
+
+.btn-secondary {
+  background: #ede9fe;
+  color: #5b21b6;
+}

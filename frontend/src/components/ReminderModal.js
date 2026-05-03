@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "../styles/ReminderModal.css";
 
-function ReminderModal({ isOpen, onClose }) {
+function Reminder({ meetingId, userId, onClose, onAdd }) {
   const BASE_URL = process.env.REACT_APP_API_URL;
 
   const [title, setTitle] = useState("");
@@ -10,14 +10,12 @@ function ReminderModal({ isOpen, onClose }) {
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
 
-  // fetch users
+  // ✅ FIX: remove isOpen, always fetch on mount
   useEffect(() => {
-    if (isOpen) {
-      fetch(`${BASE_URL}/users`)
-        .then(res => res.json())
-        .then(data => setUsers(data.users || []));
-    }
-  }, [isOpen, BASE_URL]);
+    fetch(`${BASE_URL}/users`)
+      .then(res => res.json())
+      .then(data => setUsers(data.users || []));
+  }, [BASE_URL]);
 
   const toggleUser = (id) => {
     setSelectedUsers((prev) =>
@@ -49,20 +47,22 @@ function ReminderModal({ isOpen, onClose }) {
     const data = await res.json();
 
     if (data.message) {
-      alert("Reminder Created!");
+      // ✅ FIX: call onAdd safely
+      if (onAdd) {
+        onAdd({ title, message, date });
+      }
+
       onClose();
     } else {
       alert("Error creating reminder");
     }
   };
 
-  if (!isOpen) return null;
-
   return (
     <div className="modal-overlay">
       <div className="modal-box">
 
-        <h2>📅 Create Reminder</h2>
+        <h2>Create Reminder</h2>
 
         <input
           type="text"
@@ -86,7 +86,6 @@ function ReminderModal({ isOpen, onClose }) {
           className="modal-input"
         />
 
-        {/* USERS DROPDOWN */}
         <div className="users-dropdown">
           <h4>Select Users</h4>
 
@@ -119,4 +118,4 @@ function ReminderModal({ isOpen, onClose }) {
   );
 }
 
-export default ReminderModal;
+export default Reminder;
