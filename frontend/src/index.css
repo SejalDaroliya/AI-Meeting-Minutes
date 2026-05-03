@@ -15,3 +15,22 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.Toastify__toast {
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.Toastify__toast--success {
+  background: #16a34a;
+  color: white;
+}
+
+.Toastify__toast--error {
+  background: #dc2626;
+  color: white;
+}
+.Toastify__toast-container {
+  top: 80px !important;  /* pushes toast below navbar */
+  z-index: 9999 !important;
+}
+

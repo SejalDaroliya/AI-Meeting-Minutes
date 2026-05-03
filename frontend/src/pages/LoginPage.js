@@ -3,6 +3,7 @@ import "../styles/LoginPage.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useLoader } from "../context/LoaderContext";
+import HeroVisual from "../pages/HeroVisualTwo";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -65,7 +66,9 @@ function LoginPage() {
               <br />
               intelligently managed.
             </h1>
-
+            <div className="visual-section">
+            <HeroVisual />
+          </div>
             <p>
               Record, transcribe, and extract actionable insights from every
               meeting — automatically. Let AI handle the notes so you can stay
