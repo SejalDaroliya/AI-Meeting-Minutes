@@ -771,34 +771,40 @@ def get_user_meetings(user_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-# profile page 
 @app.route("/profile/<int:user_id>", methods=["GET"])
 def get_profile(user_id):
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # 1) User
-    cur.execute("SELECT name, email FROM users WHERE user_id = %s", (user_id,))
+    # =========================
+    # 1) USER DETAILS
+    # =========================
+    cur.execute(
+        "SELECT name, email FROM users WHERE user_id = %s",
+        (user_id,)
+    )
     user = cur.fetchone()
 
     if not user:
+        conn.close()
         return jsonify({"error": "User not found"}), 404
 
-    # 2) Summaries + stats
+    # =========================
+    # 2) KEY POINTS + ACTION ITEMS STATS
+    # =========================
     cur.execute("""
-        SELECT 
-            s.key_points,
-            s.action_items
+        SELECT s.key_points, s.action_items
         FROM summaries s
         JOIN meetings m ON s.meeting_id = m.meeting_id
         WHERE m.user_id = %s
     """, (user_id,))
-    rows = cur.fetchall()
+
+    summary_rows = cur.fetchall()
 
     total_key_points = 0
     total_action_items = 0
 
-    for key_points, action_items in rows:
+    for key_points, action_items in summary_rows:
 
         # key points
         if key_points:
@@ -807,8 +813,7 @@ def get_profile(user_id):
                     key_points = json.loads(key_points)
                 except:
                     key_points = []
-
-            total_key_points += len(key_points)
+            total_key_points += len(key_points or [])
 
         # action items
         if action_items:
@@ -817,10 +822,11 @@ def get_profile(user_id):
                     action_items = json.loads(action_items)
                 except:
                     action_items = []
+            total_action_items += len(action_items or [])
 
-            total_action_items += len(action_items)
-
-    # 3) Avg processing time (same as stats API)
+    # =========================
+    # 3) AVG PROCESSING TIME
+    # =========================
     cur.execute("""
         SELECT ROUND(AVG(NULLIF(processing_time, 0))::numeric, 1)
         FROM meetings
@@ -830,18 +836,21 @@ def get_profile(user_id):
     result = cur.fetchone()[0]
     avg_time = float(result) if result else 0
 
-    # 4) 🔥 ACTIVITY GRAPH (last 7 days)
+    # =========================
+    # 4) MEETINGS COUNT + ACTIVITY
+    # =========================
     cur.execute("""
         SELECT created_at
         FROM meetings
         WHERE user_id = %s
     """, (user_id,))
 
-    meetings = cur.fetchall()
+    meeting_rows = cur.fetchall()
+    meeting_count = len(meeting_rows)
 
     activity_map = defaultdict(int)
 
-    for (created_at,) in meetings:
+    for (created_at,) in meeting_rows:
         if created_at:
             day = created_at.date().isoformat()
             activity_map[day] += 1
@@ -857,39 +866,48 @@ def get_profile(user_id):
             "date": day_str,
             "count": activity_map.get(day_str, 0)
         })
-    # 4) DONE vs PENDING from real table
+
+    # =========================
+    # 5) DONE vs PENDING
+    # =========================
     cur.execute("""
-        SELECT status
+        SELECT ai.status
         FROM action_items ai
         JOIN meetings m ON ai.meeting_id = m.meeting_id
         WHERE m.user_id = %s
-        """, (user_id,))
+    """, (user_id,))
 
-    rows = cur.fetchall()
+    action_rows = cur.fetchall()
 
     done = 0
     pending = 0
 
-    for (status,) in rows:
+    for (status,) in action_rows:
         if status:
             status = status.lower()
-
             if status == "done":
                 done += 1
             elif status == "pending":
                 pending += 1
-        conn.close()
 
+    # =========================
+    # CLOSE CONNECTION
+    # =========================
+    conn.close()
+
+    # =========================
+    # RESPONSE
+    # =========================
     return jsonify({
         "name": user[0],
         "email": user[1],
-        "meetings": len(rows),
+        "meetings": meeting_count,
         "key_points": total_key_points,
         "action_items": total_action_items,
         "avg_time": avg_time,
         "activity": activity,
-        "done" : done,
-        "pending" : pending   # 🔥 NEW FIELD
+        "done": done,
+        "pending": pending
     })
 #edit profile
 @app.route("/update-profile/<int:user_id>", methods=["PUT"])
@@ -927,9 +945,7 @@ def get_reminders(user_id):
                 mr.reminder_time,
                 mr.sent
             FROM meeting_reminders mr
-            JOIN reminder_recipients rr 
-                ON mr.reminder_id = rr.reminder_id
-            WHERE rr.user_id = %s
+            WHERE mr.created_by = %s
             ORDER BY mr.reminder_time DESC
         """, (user_id,))
 

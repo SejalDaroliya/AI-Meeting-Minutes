@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../styles/ReminderPage.css";
+import { useLoader } from "../context/LoaderContext";
 
 function ReminderPage() {
   const BASE_URL = process.env.REACT_APP_API_URL;
@@ -17,6 +18,7 @@ function ReminderPage() {
   const [showUsersDropdown, setShowUsersDropdown] = useState(false);
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
+  const { showLoader, hideLoader } = useLoader();
 
   // ✅ fetch users
   useEffect(() => {
@@ -25,13 +27,25 @@ function ReminderPage() {
       .then(data => setUsers(data.users || []));
   }, [BASE_URL]);
 
-  useEffect(() => {
-  if (!storedUser?.user_id) return;
+useEffect(() => {
+  const fetchReminders = async () => {
+    if (!storedUser?.user_id) return;
 
-  fetch(`${BASE_URL}/reminders/${storedUser.user_id}`)
-    .then((res) => res.json())
-    .then((data) => setReminders(data.reminders || []));
-}, [BASE_URL, storedUser?.user_id]);
+    showLoader();
+
+    try {
+      const res = await fetch(`${BASE_URL}/reminders/${storedUser.user_id}`);
+      const data = await res.json();
+      setReminders(data.reminders || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      hideLoader();
+    }
+  };
+
+  fetchReminders();
+}, [BASE_URL, storedUser?.user_id, showLoader, hideLoader]);
 
   const toggleUser = (id) => {
     setSelectedUsers((prev) =>
@@ -42,11 +56,14 @@ function ReminderPage() {
   };
 
   const handleCreate = async () => {
-    if (!title || !date) {
-      alert("Fill required fields");
-      return;
-    }
+  if (!title || !date) {
+    alert("Fill required fields");
+    return;
+  }
 
+  showLoader();
+
+  try {
     const res = await fetch(`${BASE_URL}/create-reminder`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -61,28 +78,30 @@ function ReminderPage() {
     const data = await res.json();
 
     if (data.message) {
-      // add to UI
       setReminders([
-  ...reminders,
-  {
-    title,
-    message,
-    reminder_time: date,
-    sent: false
-  }
-]);
+        ...reminders,
+        {
+          title,
+          message,
+          reminder_time: date,
+          sent: false
+        }
+      ]);
 
-      // reset
+      setShowForm(false);
       setTitle("");
       setMessage("");
       setDate("");
       setSelectedUsers([]);
-
-      setShowForm(false);
     } else {
       alert("Error creating reminder");
     }
-  };
+  } catch (err) {
+    console.error(err);
+  } finally {
+    hideLoader();
+  }
+};
 
   return (
     <div className="reminder-container">

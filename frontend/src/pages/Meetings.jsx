@@ -1,23 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/MeetingPage.css";
+import { useLoader } from "../context/LoaderContext";
 
 function MeetingsPage() {
   const navigate = useNavigate();
   const BASE_URL = process.env.REACT_APP_API_URL;
 
   const [meetings, setMeetings] = useState([]);
+  const { showLoader, hideLoader } = useLoader();
 
   useEffect(() => {
+  const fetchMeetings = async () => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
 
     if (!storedUser?.user_id) return;
 
-    fetch(`${BASE_URL}/user-meetings/${storedUser.user_id}`)
-      .then((res) => res.json())
-      .then((data) => setMeetings(data || []))
-      .catch((err) => console.error(err));
-  }, [BASE_URL]);
+    showLoader();
+
+    try {
+      const res = await fetch(
+        `${BASE_URL}/user-meetings/${storedUser.user_id}`
+      );
+      const data = await res.json();
+      setMeetings(data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      hideLoader();
+    }
+  };
+
+  fetchMeetings();
+}, [BASE_URL, showLoader, hideLoader]);
 
   const handleViewSummary = async (meetingId) => {
     try {
