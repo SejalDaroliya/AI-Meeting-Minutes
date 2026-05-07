@@ -39,6 +39,16 @@ function LiveRecording() {
     }, 3000);
   };
 
+  // Add this constant at the top of the component
+const FILLER_WORDS = new Set([
+  "hello", "hi", "hey", "okay", "ok", "yes", "no", "um", "uh",
+  "hmm", "ah", "oh", "test", "testing", "check", "one", "two",
+  "three", "mic", "audio", "hello hello", "can you hear me"
+]);
+
+const MIN_WORDS = 30;          // minimum meaningful words
+const MIN_DURATION_SEC = 20;   // minimum recording length
+
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60)
       .toString()
@@ -207,6 +217,53 @@ function LiveRecording() {
     return await res.json();
   };
 
+  const validateRecording = () => {
+  // 1. Minimum duration check
+  if (recordingTime < MIN_DURATION_SEC) {
+    showToast(`Recording too short. Please record at least ${MIN_DURATION_SEC} seconds of meeting content.`);
+    return false;
+  }
+
+  const transcript = finalTranscriptRef.current.trim().toLowerCase();
+
+  // 2. Empty transcript check
+  if (!transcript) {
+    showToast("No speech detected. Please speak clearly during recording.");
+    return false;
+  }
+
+  // 3. Minimum word count check
+  const words = transcript.split(/\s+/).filter(Boolean);
+  if (words.length < MIN_WORDS) {
+    showToast(`Too little content detected (${words.length} words). Please record more of your meeting.`);
+    return false;
+  }
+
+  // 4. Filler-only check — flag if >60% of unique words are fillers
+  const uniqueWords = [...new Set(words)];
+  const fillerCount = uniqueWords.filter(w => FILLER_WORDS.has(w)).length;
+  const fillerRatio = fillerCount / uniqueWords.length;
+
+  if (fillerRatio > 0.6) {
+    showToast("Recording seems to contain mostly filler words. Please record actual meeting content.");
+    return false;
+  }
+
+  // 5. Repetition check — flag if one word makes up >40% of all words
+  const wordFreq = words.reduce((acc, w) => {
+    acc[w] = (acc[w] || 0) + 1;
+    return acc;
+  }, {});
+  const maxFreq = Math.max(...Object.values(wordFreq));
+  if (maxFreq / words.length > 0.4) {
+    const repeatedWord = Object.keys(wordFreq).find(w => wordFreq[w] === maxFreq);
+    showToast(`Recording seems repetitive (word "${repeatedWord}" repeated too much). Please record actual meeting content.`);
+    return false;
+  }
+
+  return true;
+};
+
   const handleGenerate = async () => {
     if (!meetingTitle.trim()) {
       showToast("Please enter a meeting title first");
@@ -224,7 +281,9 @@ function LiveRecording() {
       );
       return;
     }
-
+if (inputMode === "live" && !validateRecording()) {
+    return; // toast already shown inside validateRecording
+  }
     showLoader();
 
     try {

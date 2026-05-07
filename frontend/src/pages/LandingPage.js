@@ -10,7 +10,7 @@ function LandingPage() {
     {
       question: "How does the AI generate meeting summaries?",
       answer:
-        "MeetPilot transcribes your audio, separates speakers, and then processes the transcript through an AI model trained to extract decisions, blockers, and follow-ups."
+        "MeetPilot transcribes your audio and processes the full conversation using AI to extract key decisions, important points, and follow-up tasks."
     },
     {
       question: "Is my meeting data private and secure?",
@@ -20,7 +20,7 @@ function LandingPage() {
     {
       question: "What audio and video formats are supported?",
       answer:
-        "MP3, WAV, MP4, and most standard meeting exports are supported for transcription and summarization."
+        "MP3 and WAV and most standard meeting exports are supported for transcription and summarization."
     },
     {
       question: "Can I edit the AI-generated report before sharing?",
@@ -30,7 +30,7 @@ function LandingPage() {
     {
       question: "Does it support multiple speakers and group calls?",
       answer:
-        "Yes. Speaker detection is built in. The transcript is labelled by speaker, and the summary attributes decisions and tasks to the right person — perfect for stand-ups, client calls, and lecture recordings."
+        "Yes. The system processes the full conversation and generates a structured summary with key points and action items. It works well for group discussions, team meetings, and lectures."
     },
     {
       question: "Is there a free plan for students?",
@@ -161,8 +161,8 @@ function LandingPage() {
               <p className="feature-label">01 — TRANSCRIPTION</p>
               <h3>AI Transcription</h3>
               <p>
-                Convert meeting audio into searchable, speaker-labeled text with
-                real-time clarity and structured output.
+                Convert meeting audio into searchable, speclean, readable text output that captures the full 
+                conversation accurately and prepares it for AI-based summarization.
               </p>
             </div>
 
@@ -285,8 +285,7 @@ function LandingPage() {
             <div className="step-number">02</div>
             <h3>Our AI transcribes and summarises</h3>
             <p>
-              Speaker-aware transcription, then a structured summary with key
-              points and assigned action items.
+              Transcription followed by AI-generated structured summary including key points and action items.
             </p>
           </div>
 
