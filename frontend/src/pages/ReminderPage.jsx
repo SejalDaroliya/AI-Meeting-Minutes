@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "../styles/ReminderPage.css";
 import { useLoader } from "../context/LoaderContext";
+import { toast } from "react-toastify";
 
 function ReminderPage() {
   const BASE_URL = process.env.REACT_APP_API_URL;
@@ -64,7 +65,7 @@ useEffect(() => {
   showLoader();
 
   try {
-    const res = await fetch(`${BASE_URL}/create-reminder`, {
+    const res = await fetch(`${BASE_URL}/create-reminder/${storedUser.user_id}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -78,6 +79,7 @@ useEffect(() => {
     const data = await res.json();
 
     if (data.message) {
+       toast.success("Reminder created successfully 🎉");
       setReminders([
         ...reminders,
         {

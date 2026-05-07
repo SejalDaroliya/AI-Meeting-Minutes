@@ -155,7 +155,7 @@
 
 .dropdown-item:hover {
   background: rgba(124, 58, 237, 0.08);
-  color: rgba(124, 58, 237, 0.1);
+  color: rgba(124, 58, 237, 0.945);
   transform: translateX(3px);
 }
 

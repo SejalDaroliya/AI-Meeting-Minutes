@@ -87,8 +87,13 @@ const showToast = (message, type = "error") => {
       const result = await uploadAudio(selectedFile);
 
       if (result.success) {
-        navigate("/summary", { state: result });
-      } else {
+  navigate("/summary", {
+    state: {
+      meeting_id: result.meeting_id,
+      status: "processing"
+    }
+  });
+} else {
         showToast("Something went wrong");
       }
     } catch (err) {
@@ -270,38 +275,43 @@ useEffect(() => {
       🎤 Live Mic
     </button>
 
-    <button className="tertiary-btn" onClick={() => setShowUsersPanel(!showUsersPanel)}>
-      👥 Select Participants ({selectedUsers.length})
+    <div className="participants-dropdown">
+  <div
+    className="dropdown-toggle"
+    onClick={() => setShowUsersPanel(!showUsersPanel)}
+  >
+    👥 Select Participants ({selectedUsers.length}) ▾
+  </div>
+
+{showUsersPanel && (
+  <div className="dropdown-menu">
+    {users.map((user) => (
+      <label key={user.user_id} className="dropdown-item">
+        <input
+          type="checkbox"
+          checked={selectedUsers.includes(user.user_id)}
+          onChange={() => toggleUser(user.user_id)}
+        />
+        {user.email}
+      </label>
+    ))}
+
+    {/* ✅ Done button INSIDE same container */}
+    <button
+      className="primary-btn dropdown-done-btn"
+      onClick={() => setShowUsersPanel(false)}
+    >
+      Done
     </button>
+  </div>
+)}
+</div>
 
     <button onClick={handleGenerate} className="primary-btn">
       Generate Summary
     </button>
 
-    {showUsersPanel && (
-      <div className="users-panel">
-        <h3>Select Participants</h3>
-        <div className="users-list">
-          {users.length === 0 ? (
-            <p>No users found</p>
-          ) : (
-            users.map((user) => (
-              <label key={user.user_id} className="user-item">
-                <input
-                  type="checkbox"
-                  checked={selectedUsers.includes(user.user_id)}
-                  onChange={() => toggleUser(user.user_id)}
-                />
-                <span>{user.name} ({user.email})</span>
-              </label>
-            ))
-          )}
-        </div>
-        <button className="primary-btn" onClick={() => setShowUsersPanel(false)}>
-          Done
-        </button>
-      </div>
-    )}
+    
   </div>
 
   {selectedFile && (

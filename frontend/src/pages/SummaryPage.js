@@ -1,6 +1,6 @@
 import "../styles/SummaryPage.css";
 import HeroVisual from "./HeroVisual";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useLoader } from "../context/LoaderContext";
 
@@ -35,6 +35,8 @@ function SummaryPage() {
   const meetingTitle = data?.title || "Untitled Meeting";
   const meetingDate = data?.date || data?.created_at || null;
   const [trackedActions, setTrackedActions] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(true);
+
 
   // ✅ LOAD VOICES
   useEffect(() => {
@@ -54,24 +56,25 @@ function SummaryPage() {
   }, []);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    const fetchSummary = async () => {
-      if (!meetingId) return;
-      showLoader();
-      try {
-        const res = await fetch(`${BASE_URL}/meeting-summary/${meetingId}`);
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error);
-        setData(result);
-      } catch (err) {
-        console.error(err);
-        alert("Error loading summary");
-      } finally {
-        hideLoader();
-      }
-    };
-    fetchSummary();
-  }, [meetingId, BASE_URL, showLoader, hideLoader]);
+  // useEffect(() => {
+  //   const fetchSummary = async () => {
+  //     if (!meetingId) return;
+  //     showLoader();
+  //     try {
+  //       const res = await fetch(`${BASE_URL}/meeting-summary/${meetingId}`);
+  //       const result = await res.json();
+  //       if (!res.ok) throw new Error(result.error);
+  //       setData(result);
+  //     } catch (err) {
+  //       console.error(err);
+  //       alert("Error loading summary");
+  //     } finally {
+  //       hideLoader();
+  //     }
+  //   };
+  //   fetchSummary();
+  // }, [meetingId, BASE_URL, showLoader, hideLoader]);
+
 
   // 🔊 SPEAK
   const speakText = () => {
@@ -111,46 +114,108 @@ function SummaryPage() {
     return d.toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" });
   };
 
-  useEffect(() => {
-  const fetchTrackedActions = async () => {
-    if (!meetingId) return;
+// ✅ FETCH TRACKED ACTIONS
+const fetchTrackedActions = useCallback(async () => {
+  if (!meetingId) return;
+  try {
+    const res = await fetch(`${BASE_URL}/meeting-actions/${meetingId}`);
+    const result = await res.json();
+    if (res.ok) {
+      setTrackedActions(result.actions || []);
+    }
+  } catch (err) {
+    console.error("Tracked actions fetch failed:", err);
+  }
+}, [meetingId, BASE_URL]);
 
+useEffect(() => {
+  if (!meetingId) return;
+  let interval;
+  let active = true; // prevent state updates after unmount
+
+  const fetchSummary = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/meeting-actions/${meetingId}`);
+      const res = await fetch(`${BASE_URL}/meeting-summary/${meetingId}`);
+
+      if (res.status === 404) {
+        clearInterval(interval);
+        if (active) { setIsProcessing(false); hideLoader(); }
+        return;
+      }
+
       const result = await res.json();
 
-      if (res.ok) {
-        setTrackedActions(result.actions || []);
+      if (result.status === "completed") {
+        if (active) {
+          setData(result);
+          setIsProcessing(false);
+          hideLoader();
+        }
+        clearInterval(interval);
+        await fetchTrackedActions(); // only once, after completion
       }
     } catch (err) {
-      console.error("Tracked actions fetch failed:", err);
+      console.error(err);
+      clearInterval(interval);
+      if (active) { setIsProcessing(false); hideLoader(); }
     }
   };
 
-  fetchTrackedActions();
-}, [meetingId, BASE_URL]);
+  showLoader();
+  fetchSummary(); // immediate first call
+  interval = setInterval(fetchSummary, 3000);
+
+  return () => {
+    active = false;
+    clearInterval(interval);
+  };
+}, [meetingId, BASE_URL, fetchTrackedActions, showLoader, hideLoader]); // ✅ stable deps only
 
 const updateActionStatus = async (actionId, newStatus) => {
+  // ✅ 1. Instant UI update
+  setTrackedActions((prev) =>
+    prev.map((a) =>
+      a.action_id === actionId ? { ...a, status: newStatus } : a
+    )
+  );
+
   try {
+    // ✅ 2. API call in background
     const res = await fetch(`${BASE_URL}/update-action-status/${actionId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
     });
 
-    if (res.ok) {
-      setTrackedActions((prev) =>
-        prev.map((a) =>
-          a.action_id === actionId ? { ...a, status: newStatus } : a
-        )
-      );
+    if (!res.ok) {
+      throw new Error("Failed");
     }
+
   } catch (err) {
     console.error(err);
+
+    // ❗ rollback if API fails
+    setTrackedActions((prev) =>
+      prev.map((a) =>
+        a.action_id === actionId
+          ? { ...a, status: newStatus === "Done" ? "Pending" : "Done" }
+          : a
+      )
+    );
   }
 };
-
+if (isProcessing) {
   return (
+    <div className="summary-page">
+      <div className="processing-state">
+        <h2>⏳ Processing your meeting...</h2>
+        <p>Transcribing audio and generating insights...</p>
+      </div>
+    </div>
+  );
+}
+  return (
+    
     <div className="summary-page">
 
       {/* BACK */}
