@@ -60,11 +60,17 @@ def check_reminders():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT reminder_id, title, message, reminder_time
-        FROM meeting_reminders
-        WHERE sent = FALSE
-        AND reminder_time - INTERVAL '15 minutes' <= NOW()
-    """)
+    SELECT reminder_id, title, message, reminder_time
+    FROM meeting_reminders
+    WHERE sent = FALSE
+    AND created_at + INTERVAL '30 seconds' <= NOW()
+""")
+#     cur.execute("""
+#         SELECT reminder_id, title, message, reminder_time
+#         FROM meeting_reminders
+#         WHERE sent = FALSE
+#         AND reminder_time - INTERVAL '5 minutes' <= NOW()
+# """)
 
     reminders = cur.fetchall()
 
@@ -267,7 +273,7 @@ Please do not reply directly to this email.
     conn.close()
 
 # run every 1 minute
-scheduler.add_job(check_reminders, "interval", minutes=1)
+scheduler.add_job(check_reminders, "interval", seconds=10)
 
 def send_email(to_emails, subject, html):
     import sib_api_v3_sdk

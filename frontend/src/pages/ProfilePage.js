@@ -11,7 +11,7 @@ const ProfilePage = () => {
   const BASE_URL = process.env.REACT_APP_API_URL;
 
   const formatTime = (t) => {
-    if (!t || t === 0) return "Instant";
+    if (!t || t === 0) return "0s";
     if (t < 1) return `${Math.round(t * 1000)} ms`;
     return `${t}s`;
   };
